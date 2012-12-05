@@ -1,0 +1,9 @@
+# stuff to ignore from sbt
+target/
+
+# don't commit the intellij stuff, run "sbt idea" to generate
+*.ipr
+*.iml
+*.iws
+.idea/
+out/
