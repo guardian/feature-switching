@@ -1,6 +1,7 @@
-import collection.mutable.LinkedHashMap
+package com.gu.featureswitching
+
+import scala.collection.mutable.LinkedHashMap
 import com.gu.featureswitching.util.Loggable
-import com.gu.featureswitching.{FeatureSwitchingOverrideStrategy, FeatureSwitch}
 import org.scalatra._
 
 
