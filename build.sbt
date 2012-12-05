@@ -4,8 +4,6 @@ version := "0.1-SNAPSHOT"
 
 organization := "com.gu"
 
-publishArtifact := false
-
 // scalaVersion := "2.9.1"
 
 crossScalaVersions := Seq("2.9.1")
