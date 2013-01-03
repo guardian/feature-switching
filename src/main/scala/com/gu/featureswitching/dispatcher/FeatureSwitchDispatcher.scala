@@ -45,13 +45,13 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
           enabled = featureIsEnabled(feature),
           overridden = featureIsOverridden(feature)
         )
-        val entityUri = baseApiUri + "/" + feature.key
+        val entityUri = baseApiUri + "/switches/" + feature.key
         FeatureSwitchResponse(Some(entityUri), entity)
     }
 
     FeatureSwitchIndexResponse(featureResponses, List(
-      LinkEntity("item:enabled", baseApiUri + "/{key}/enabled"),
-      LinkEntity("item:overridden", baseApiUri + "/{key}/overridden")
+      LinkEntity("item:enabled",    baseApiUri + "/switches/{key}/enabled"),
+      LinkEntity("item:overridden", baseApiUri + "/switches/{key}/overridden")
     ))
   }
 
@@ -75,9 +75,9 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
     )
 
     FeatureSwitchResponse(None, entity,
-      LinkEntity("enabled", baseApiUri + "/enabled") ::
-        LinkEntity("overridden", baseApiUri + "/overridden") ::
-        Nil)
+      LinkEntity("enabled",    baseApiUri + "/switches/" + feature.key + "/enabled") ::
+      LinkEntity("overridden", baseApiUri + "/switches/" + feature.key + "/overridden") ::
+      Nil)
   }
 
   get("/switches/:key/enabled") {
