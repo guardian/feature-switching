@@ -13,14 +13,13 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   lazy val errorInvalidFeature = ErrorEntity("invalid-feature")
   lazy val errorFeatureNotSet = ErrorEntity("unset-feature")
 
+  // Classes extending this trait need to provide the absolute URI to this dispatcher
+  val baseApiUri: String
+
 
   // disable caching
   after() {
     response.setHeader("Cache-Control", "public, max-age=0")
-  }
-
-  def routeUri = {
-    request.getScheme + "://" + request.getServerName + ":" + request.getServerPort + request.getRequestURI;
   }
 
   def noContent = {
@@ -31,7 +30,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   get("/") {
     val serverStates = features.map(feat => (feat.key -> featureIsActive(feat))).toMap
 
-    val switchesLink = LinkEntity("switches", routeUri + "/switches")
+    val switchesLink = LinkEntity("switches", baseApiUri + "/switches")
     FeatureSwitchSummaryResponse(serverStates, List(switchesLink))
   }
 
@@ -46,13 +45,13 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
           enabled = featureIsEnabled(feature),
           overridden = featureIsOverridden(feature)
         )
-        val entityUri = routeUri + "/" + feature.key
+        val entityUri = baseApiUri + "/" + feature.key
         FeatureSwitchResponse(Some(entityUri), entity)
     }
 
     FeatureSwitchIndexResponse(featureResponses, List(
-      LinkEntity("item:enabled", routeUri + "/{key}/enabled"),
-      LinkEntity("item:overridden", routeUri + "/{key}/overridden")
+      LinkEntity("item:enabled", baseApiUri + "/{key}/enabled"),
+      LinkEntity("item:overridden", baseApiUri + "/{key}/overridden")
     ))
   }
 
@@ -76,8 +75,8 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
     )
 
     FeatureSwitchResponse(None, entity,
-      LinkEntity("enabled", routeUri + "/enabled") ::
-        LinkEntity("overridden", routeUri + "/overridden") ::
+      LinkEntity("enabled", baseApiUri + "/enabled") ::
+        LinkEntity("overridden", baseApiUri + "/overridden") ::
         Nil)
   }
 
