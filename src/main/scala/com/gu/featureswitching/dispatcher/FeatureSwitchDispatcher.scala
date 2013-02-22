@@ -14,7 +14,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   lazy val errorFeatureNotSet = ErrorEntity("unset-feature")
 
   // Classes extending this trait need to provide the absolute URI to this dispatcher
-  val baseApiUri: String
+  def baseApiUri: String
 
 
   // disable caching
