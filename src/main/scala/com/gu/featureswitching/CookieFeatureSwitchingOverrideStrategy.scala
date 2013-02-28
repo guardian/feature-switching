@@ -1,10 +1,9 @@
 package com.gu.featureswitching
 
-import com.gu.featureswitching.util.Loggable
 import org.scalatra._
 
 trait CookieFeatureSwitchingOverrideStrategy extends FeatureSwitchingOverrideStrategy
-    with ScalatraKernel with CookieSupport with Loggable {
+    with ScalatraKernel with CookieSupport {
 
   lazy val featureSwitchOverrideKey = "features.override"
 
