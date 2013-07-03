@@ -1,18 +1,16 @@
 name := "feature-switching"
 
-version := "0.6"
+version := "0.7"
 
 organization := "com.gu"
 
-// scalaVersion := "2.9.1"
-
-crossScalaVersions := Seq("2.9.1")
+scalaVersion := "2.9.2"
 
 libraryDependencies ++= Seq(
   "javax.servlet" % "servlet-api" % "2.5" % "provided",
-  "net.liftweb" %% "lift-json" % "2.4-M4",
+  "net.liftweb" %% "lift-json" % "2.5",
   "org.slf4j" % "slf4j-api" % "1.6.1",
-  "org.scalatra" %% "scalatra" % "2.0.2"
+  "org.scalatra" % "scalatra_2.9.1" % "2.0.2"
 )
 
 publishTo <<= (version) { version: String =>
