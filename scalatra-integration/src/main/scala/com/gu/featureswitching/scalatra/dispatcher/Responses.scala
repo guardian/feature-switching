@@ -1,4 +1,4 @@
-package com.gu.featureswitching.dispatcher
+package com.gu.featureswitching.scalatra.dispatcher
 
 case class FeatureSwitchEntity(key: String,
                                title: String,

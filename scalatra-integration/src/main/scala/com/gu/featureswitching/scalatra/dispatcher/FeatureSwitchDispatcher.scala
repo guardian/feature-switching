@@ -1,4 +1,4 @@
-package com.gu.featureswitching.dispatcher
+package com.gu.featureswitching.scalatra.dispatcher
 
 import org.scalatra.ScalatraServlet
 import com.gu.featureswitching.util.DeserialisationHelpers

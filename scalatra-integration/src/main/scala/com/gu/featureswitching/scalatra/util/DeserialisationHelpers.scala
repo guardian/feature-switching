@@ -1,11 +1,11 @@
-package com.gu.featureswitching.util
+package com.gu.featureswitching.scalatra.util
 
-import com.gu.featureswitching.dispatcher.ErrorEntity
 import org.scalatra.ScalatraServlet
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.JsonAST.{JBool, JArray}
 import net.liftweb.json.parse
 import org.slf4j.LoggerFactory
+import com.gu.featureswitching.scalatra.dispatcher.ErrorEntity
 
 trait DeserialisationHelpers extends ScalatraServlet {
   lazy val errorInvalidJson = ErrorEntity("invalid-json")
