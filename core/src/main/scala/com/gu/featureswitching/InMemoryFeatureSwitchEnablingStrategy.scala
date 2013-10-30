@@ -1,11 +1,12 @@
 package com.gu.featureswitching
 
-import collection.mutable.LinkedHashMap
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConverters._
 
 // Simple in-memory implementation of feature state persistence.
 // Obviously, don't use this if you have multiple app servers!
 trait InMemoryFeatureSwitchEnablingStrategy extends FeatureSwitchingEnablingStrategy {
-  var persistence: LinkedHashMap[FeatureSwitch, Boolean] = new LinkedHashMap[FeatureSwitch, Boolean]()
+  val persistence = new ConcurrentHashMap[FeatureSwitch, Boolean]().asScala
 
   def featureIsEnabled(feature: FeatureSwitch): Option[Boolean] = {
     persistence.get(feature)
