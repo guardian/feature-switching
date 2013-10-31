@@ -1,6 +1,7 @@
-package com.gu.featureswitching
+package com.gu.featureswitching.scalatra
 
 import org.scalatra._
+import com.gu.featureswitching.{FeatureSwitch, FeatureSwitchingOverrideStrategy}
 
 trait CookieFeatureSwitchingOverrideStrategy extends FeatureSwitchingOverrideStrategy
     with ScalatraKernel with CookieSupport {

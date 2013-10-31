@@ -1,4 +1,4 @@
-package com.gu.featureswitching.dispatcher
+package com.gu.featureswitching.scalatra.dispatcher
 
 import net.liftweb.json._
 import org.scalatra.{ScalatraServlet, RenderPipeline}
