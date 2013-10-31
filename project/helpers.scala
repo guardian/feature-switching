@@ -16,7 +16,7 @@ object SbtHelpers {
       version := projectVersion,
       organization := Organization,
       scalaVersion := "2.9.2",
-      libraryDependencies ++= Seq(sfl4j),
+      libraryDependencies ++= Seq(sfl4j, amazonWebServicesSdk),
       publishTo <<= (version) { version: String =>
         val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
         Some(
