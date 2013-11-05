@@ -2,7 +2,7 @@ package com.gu.featureswitching.dispatcher
 
 import org.scalatra.ScalatraServlet
 import com.gu.featureswitching.util.DeserialisationHelpers
-import com.gu.featureswitching.FeatureSwitching
+import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching}
 import net.liftweb.json.DefaultFormats
 
 trait FeatureSwitchDispatcher extends ScalatraServlet
@@ -16,6 +16,12 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   // Classes extending this trait need to provide the absolute URI to this dispatcher
   def baseApiUri: String
 
+  // Define URIs
+  def switchesUri = baseApiUri + "/switches"
+  def switchUri(feature: FeatureSwitch) = switchesUri + "/" + feature.key
+  def switchEnabledUri(feature: FeatureSwitch) = switchUri(feature) + "/enabled"
+  def switchOverriddenUri(feature: FeatureSwitch) = switchUri(feature) + "/overridden"
+
 
   // disable caching
   after() {
@@ -26,33 +32,28 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
     status(201)
   }
 
+  def featureResponse(feature: FeatureSwitch): FeatureSwitchResponse = {
+    val entity = FeatureSwitchEntity(
+      key        = feature.key,
+      title      = feature.title,
+      default    = feature.default,
+      active     = featureIsActive(feature),
+      enabled    = ToggleResponse(switchEnabledUri(feature),    featureIsEnabled(feature)),
+      overridden = ToggleResponse(switchOverriddenUri(feature), featureIsOverridden(feature))
+    )
+    FeatureSwitchResponse(Some(switchUri(feature)), entity)
+  }
+
+  def featuresResponses: List[FeatureSwitchResponse] = features.map(featureResponse(_))
+
 
   get("/") {
-    val serverStates = features.map(feat => (feat.key -> featureIsActive(feat))).toMap
-
-    val switchesLink = LinkEntity("switches", baseApiUri + "/switches")
-    FeatureSwitchSummaryResponse(serverStates, List(switchesLink))
+    val index = FeatureSwitchIndexResponse(Some(switchesUri), featuresResponses)
+    FeatureSwitchRootResponse(FeatureSwitchRoot(index))
   }
 
   get("/switches") {
-    val featureResponses = features.map {
-      feature =>
-        val entity = FeatureSwitchEntity(
-          key = feature.key,
-          title = feature.title,
-          default = feature.default,
-          active = featureIsActive(feature),
-          enabled = featureIsEnabled(feature),
-          overridden = featureIsOverridden(feature)
-        )
-        val entityUri = baseApiUri + "/switches/" + feature.key
-        FeatureSwitchResponse(Some(entityUri), entity)
-    }
-
-    FeatureSwitchIndexResponse(featureResponses, List(
-      LinkEntity("item:enabled",    baseApiUri + "/switches/{key}/enabled"),
-      LinkEntity("item:overridden", baseApiUri + "/switches/{key}/overridden")
-    ))
+    FeatureSwitchIndexResponse(None, featuresResponses)
   }
 
 
@@ -65,19 +66,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   get("/switches/:key") {
     val feature = getFeatureFromKeyParam
 
-    val entity = FeatureSwitchEntity(
-      key = feature.key,
-      title = feature.title,
-      default = feature.default,
-      active = featureIsActive(feature),
-      enabled = featureIsEnabled(feature),
-      overridden = featureIsOverridden(feature)
-    )
-
-    FeatureSwitchResponse(None, entity,
-      LinkEntity("enabled",    baseApiUri + "/switches/" + feature.key + "/enabled") ::
-      LinkEntity("overridden", baseApiUri + "/switches/" + feature.key + "/overridden") ::
-      Nil)
+    featureResponse(feature)
   }
 
   get("/switches/:key/enabled") {
