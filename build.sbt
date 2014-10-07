@@ -24,6 +24,7 @@ lazy val featureSwitchingScalatra = (project in file("scalatra"))
   .dependsOn(featureSwitchingCore)
 
 lazy val root = (project in file("."))
+  .settings(publishArtifact := false)
   .dependsOn(featureSwitchingCore, featureSwitchingScalatra)
 
 publishTo <<= (version) { version: String =>
