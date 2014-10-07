@@ -1,6 +1,6 @@
 name := "feature-switching"
 
-version := "0.13-SNAPSHOT"
+version in ThisBuild := "0.13-SNAPSHOT"
 
 organization := "com.gu"
 
