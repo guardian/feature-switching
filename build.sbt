@@ -16,16 +16,16 @@ lazy val scalatraDependencies = Seq(
   "org.scalatra" %% "scalatra" % "2.0.5"
 )
 
-lazy val featureSwitchingCore = (project in file("core"))
+lazy val core = Project("feature-switching-core", file("core"))
   .settings(libraryDependencies ++= commonDependencies)
 
-lazy val featureSwitchingScalatra = (project in file("scalatra"))
+lazy val scalatra = Project("feature-switching-scalatra", file("scalatra"))
   .settings(libraryDependencies ++= commonDependencies ++ scalatraDependencies)
-  .dependsOn(featureSwitchingCore)
+  .dependsOn(core)
 
 lazy val root = (project in file("."))
   .settings(publishArtifact := false)
-  .dependsOn(featureSwitchingCore, featureSwitchingScalatra)
+  .dependsOn(core, scalatra)
 
 publishTo <<= (version) { version: String =>
     val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
