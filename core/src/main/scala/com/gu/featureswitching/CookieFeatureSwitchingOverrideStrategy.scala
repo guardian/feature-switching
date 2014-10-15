@@ -1,15 +1,16 @@
 package com.gu.featureswitching
 
-import org.scalatra._
 import java.net.{URLDecoder, URLEncoder}
 
-trait CookieFeatureSwitchingOverrideStrategy extends FeatureSwitchingOverrideStrategy
-    with ScalatraKernel with CookieSupport {
+trait CookieFeatureSwitchingOverrideStrategy extends FeatureSwitchingOverrideStrategy {
+
+  def getCookie(name: String): Option[String]
+  def setCookie(name: String, value: String): Unit
 
   lazy val featureSwitchOverrideKey = "features.override"
 
   // TODO: clear obsolete keys for non-existing features, by reading the list of existing switches
-  private def rawValue = cookies.get(featureSwitchOverrideKey).getOrElse("")
+  private def rawValue = getCookie(featureSwitchOverrideKey).getOrElse("")
   private def rawCookie = URLDecoder.decode(rawValue, "utf-8")
 
   private def cookieMap = rawCookie.split(",").map(_.split("=").toList).flatMap {
@@ -26,7 +27,7 @@ trait CookieFeatureSwitchingOverrideStrategy extends FeatureSwitchingOverrideStr
   }.toList.mkString(",")
 
   private def resetCookie(newCookieMap: Map[String, Boolean]) {
-    cookies.set(featureSwitchOverrideKey, renderCookie(newCookieMap))
+    setCookie(featureSwitchOverrideKey, renderCookie(newCookieMap))
   }
 
 
