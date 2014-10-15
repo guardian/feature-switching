@@ -1,21 +1,24 @@
-name                := "feature-switching"
+name in ThisBuild := "feature-switching"
 
-version             := "0.13-SNAPSHOT"
+version in ThisBuild := "0.13-SNAPSHOT"
 
-organization        := "com.gu"
+organization in ThisBuild := "com.gu"
 
-scalaVersion        := "2.10.0"
+scalaVersion in ThisBuild := "2.10.0"
 
 libraryDependencies ++= Common.dependencies
 
-scalacOptions       += "-deprecation"
+scalacOptions in ThisBuild += "-deprecation"
 
-publishArtifact     := false
+publishArtifact := false
 
-lazy val core = Project("feature-switching-core", file("core"))
+lazy val core = Project("core", file("core"))
 
-lazy val scalatra = Project("feature-switching-scalatra", file("scalatra"))
+lazy val scalatra = Project("scalatra", file("scalatra"))
   .dependsOn(core)
+
+lazy val root = Project("root", file("."))
+  .aggregate(core, scalatra)
 
 publishTo <<= (version) { version: String =>
     val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
