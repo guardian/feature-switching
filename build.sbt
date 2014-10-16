@@ -1,17 +1,24 @@
-name := "feature-switching"
+name in ThisBuild := "feature-switching"
 
-version := "0.12-SNAPSHOT"
+version in ThisBuild := "0.13-SNAPSHOT"
 
-organization := "com.gu"
+organization in ThisBuild := "com.gu"
 
-scalaVersion := "2.10.0"
+scalaVersion in ThisBuild := "2.10.0"
 
-libraryDependencies ++= Seq(
-  "javax.servlet" % "servlet-api" % "2.5" % "provided",
-  "net.liftweb" %% "lift-json" % "2.5",
-  "org.slf4j" % "slf4j-api" % "1.6.1",
-  "org.scalatra" %% "scalatra" % "2.0.5"
-)
+libraryDependencies ++= Common.dependencies
+
+scalacOptions in ThisBuild += "-deprecation"
+
+publishArtifact := false
+
+lazy val core = Project("core", file("core"))
+
+lazy val scalatra = Project("scalatra", file("scalatra"))
+  .dependsOn(core)
+
+lazy val root = Project("root", file("."))
+  .aggregate(core, scalatra)
 
 publishTo <<= (version) { version: String =>
     val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
@@ -22,6 +29,3 @@ publishTo <<= (version) { version: String =>
         )
     )
 }
-
-
-scalacOptions += "-deprecation"
