@@ -65,19 +65,19 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   }
 
   get("/switches/:key") {
-    val feature = getFeatureOr404()
+    val feature = getFeatureOr404
 
     featureResponse(feature)
   }
 
   get("/switches/:key/enabled") {
-    val feature = getFeatureOr404()
+    val feature = getFeatureOr404
 
     featureIsEnabled() getOrElse halt(404, errorFeatureNotSet)
   }
 
   put("/switches/:key/enabled") {
-    val feature = getFeatureOr404() 
+    val feature = getFeatureOr404 
     val value = parseBoolean(request.body)
 
     featureSetEnabled(feature, value)
@@ -85,27 +85,27 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   }
 
   delete("/switches/:key/enabled") {
-    val feature = getFeatureOr404() 
+    val feature = getFeatureOr404 
 
     featureResetEnabled(feature)
     noContent
   }
 
   get("/switches/:key/overridden") {
-    val feature = getFeatureOr404() 
+    val feature = getFeatureOr404 
 
     featureIsOverridden(feature) getOrElse halt(404, errorFeatureNotSet)
   }
 
   put("/switches/:key/overridden") {
-    val feature = getFeatureOr404() 
+    val feature = getFeatureOr404 
     val value = parseBoolean(request.body)
     featureSetOverride(feature, value)
     noContent
   }
 
   delete("/switches/:key/overridden") {
-    val feature = getFeatureOr404() 
+    val feature = getFeatureOr404 
     featureResetOverride(feature)
     noContent
   }
