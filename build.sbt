@@ -17,8 +17,11 @@ lazy val core = Project("core", file("core"))
 lazy val scalatra = Project("scalatra", file("scalatra"))
   .dependsOn(core)
 
+lazy val play = Project("play", file("play"))
+  .dependsOn(core)
+
 lazy val root = Project("root", file("."))
-  .aggregate(core, scalatra)
+  .aggregate(core, scalatra, play)
 
 publishTo <<= (version) { version: String =>
     val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
