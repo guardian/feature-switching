@@ -22,6 +22,20 @@ class ExampleSpec extends Specification {
     )
   }
 
+  "FeaturesApi featureByKey" should {
+    "return a feature" in {
+      running(FakeApplication()) {
+        val result: Future[Result] = fakeFeatures.featureByKey('featureOn').apply(FakeRequest())
+        val bodyJson: JsValue = contentAsJson(result)
+        val expectedJson: JsValue = Json.parse("""[{"foo":"bar"}]""")
+
+println(bodyJson)
+
+        bodyJson must be equalTo expectedJson
+      }
+    }
+  }
+
   "FeaturesApi featureList" should {
     "return a list of features" in {
       running(FakeApplication()) {

@@ -3,9 +3,10 @@ package com.gu.featureswitching.play
 import play.api.mvc._
 import play.api.libs.json._
 
-import com.gu.featureswitching.FeatureSwitch
+import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching}
 
-trait FeaturesApi extends Controller {
+
+trait FeaturesApi extends Controller with FeatureSwitching{
   val features: List[FeatureSwitch]
 
   def healthCheck = Action {
@@ -16,6 +17,14 @@ trait FeaturesApi extends Controller {
     implicit val featuresSerializer = Json.writes[FeatureSwitch] 
 
     Ok(Json.toJson(features))
+  }
+
+  def featureByKey(key: String) = Action {
+    implicit val featuresSerializer = Json.writes[FeatureSwitch] 
+
+    val feature = getFeatureFromKeyParam(key, () => NotFound("invalid-feature"))
+
+    Ok(Json.toJson(feature))
   }
 
 }
