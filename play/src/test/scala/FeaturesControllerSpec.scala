@@ -27,9 +27,6 @@ class ExampleSpec extends Specification {
       running(FakeApplication()) {
         val result: Future[Result] = fakeFeatures.featureList().apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
-
-println(bodyJson)
-false
         val expectedJson: JsValue = Json.parse("""[{"key":"featureOn","title":"Feature On","default":true},{"key":"featureOff","title":"Feature Off","default":false}]""")
 
         bodyJson must be equalTo expectedJson
