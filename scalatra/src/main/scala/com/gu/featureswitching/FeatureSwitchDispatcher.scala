@@ -56,51 +56,56 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
     FeatureSwitchIndexResponse(None, featuresResponses)
   }
 
-
   // You probably only want to use this for the routes below
-  def getFeatureFromKeyParam = {
-    val featureKey = params("key")
-    features.find(_.key == featureKey) getOrElse halt(404, body = errorInvalidFeature)
+  def getFeatureOr404 {
+      getFeatureFromKeyParam(
+        params("key"), 
+        () => halt(404, errorFeatureNotSet)
+      )
   }
 
   get("/switches/:key") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404()
 
     featureResponse(feature)
   }
 
   get("/switches/:key/enabled") {
-    val feature = getFeatureFromKeyParam
-    featureIsEnabled(feature) getOrElse halt(404, errorFeatureNotSet)
+    val feature = getFeatureOr404()
+
+    featureIsEnabled() getOrElse halt(404, errorFeatureNotSet)
   }
 
   put("/switches/:key/enabled") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404() 
     val value = parseBoolean(request.body)
+
     featureSetEnabled(feature, value)
     noContent
   }
 
   delete("/switches/:key/enabled") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404() 
+
     featureResetEnabled(feature)
     noContent
   }
 
   get("/switches/:key/overridden") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404() 
+
     featureIsOverridden(feature) getOrElse halt(404, errorFeatureNotSet)
   }
 
   put("/switches/:key/overridden") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404() 
     val value = parseBoolean(request.body)
     featureSetOverride(feature, value)
     noContent
   }
 
   delete("/switches/:key/overridden") {
-    val feature = getFeatureFromKeyParam
+    val feature = getFeatureOr404() 
     featureResetOverride(feature)
     noContent
   }
