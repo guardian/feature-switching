@@ -60,7 +60,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   def getFeatureOr404 {
       getFeatureFromKeyParam(
         params("key"), 
-        () => halt(404, errorFeatureNotSet)
+        () => halt(404, body = errorInvalidFeature)
       )
   }
 
