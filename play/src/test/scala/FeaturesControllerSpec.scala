@@ -58,6 +58,7 @@ class ExampleSpec extends Specification {
         }
       }
     }
+
     "when feature unset" >> {
       "return 404, with body 'unset-feature'" >> {
         running(FakeApplication()) {
@@ -69,6 +70,7 @@ class ExampleSpec extends Specification {
         }
       }
     }
+
     "when feature available" >> {
       "return 200, with json value" >> {
         running(FakeApplication()) {
@@ -81,7 +83,6 @@ class ExampleSpec extends Specification {
           status(result) must be equalTo 200 
         }
       }
-
     }
   }
 
@@ -114,20 +115,37 @@ class ExampleSpec extends Specification {
   }
 
   "FeaturesApi featureList" should {
-    "return a list of features" in {
-      running(FakeApplication()) {
-        val subject = new TestFeatures
-        val result: Future[Result] = subject.featureList().apply(FakeRequest())
-        val bodyJson: JsValue = contentAsJson(result)
-        val expectedJson: JsValue = Json.parse("""[{"key":"featureOn","title":"Feature On","default":true},{"key":"featureOff","title":"Feature Off","default":false}]""")
+    "when feature list not-empty" >> {
+      "return 200, with json list of features" in {
+        running(FakeApplication()) {
+          val subject = new TestFeatures
+          val result: Future[Result] = subject.featureList().apply(FakeRequest())
+          val bodyJson: JsValue = contentAsJson(result)
+          val expectedJson: JsValue = Json.parse("""[{"key":"featureOn","title":"Feature On","default":true},{"key":"featureOff","title":"Feature Off","default":false}]""")
+          
+          status(result) must be equalTo 200
+          bodyJson must be equalTo expectedJson
+        }
+      }
+    }
 
-        bodyJson must be equalTo expectedJson
+    "when feature list empty" >> {
+      "return 200, with an empty json list" in {
+        running(FakeApplication()) {
+          val subject = new TestEmptyFeatures
+          val result: Future[Result] = subject.featureList().apply(FakeRequest())
+          val bodyJson: JsValue = contentAsJson(result)
+          val expectedJson: JsValue = Json.parse("""[]""")
+
+          status(result) must be equalTo 200
+          bodyJson must be equalTo expectedJson
+        }
       }
     }
   }
 
   "FeaturesApi healthCheck" should {
-    "respond 'ok'" in {
+    "return 200, with body 'ok'" in {
       running(FakeApplication()) {
         val subject = new TestEmptyFeatures
         val result: Future[Result] = subject.healthCheck().apply(FakeRequest())
