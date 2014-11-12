@@ -44,14 +44,24 @@ class ExampleSpec extends Specification {
   class TestFeatures extends TestFeature with simpleFeatures 
   class TestEmptyFeatures extends TestFeature with emptyFeatures
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
-  class TestUnavailableFeatures extends TestFeature with simpleFeatures with unavailableFeature 
+  class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
   "FeaturesApi featureEnabledByKey" should {
     "return the enabled state of a feature" in {
 
       "when feature unavailable returns 404" >> {
         running(FakeApplication()) {
-          val subject =  new TestUnavailableFeatures 
+          val subject =  new TestEmptyFeatures 
+          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+
+          contentAsString(result) must be equalTo "invalid-feature"
+          status(result) must be equalTo 404 
+        }
+      }
+
+      "when feature unset returns 404" >> {
+        running(FakeApplication()) {
+          val subject =  new TestUnsetFeatures 
           val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
 
           contentAsString(result) must be equalTo "unset-feature"
