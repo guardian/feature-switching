@@ -22,8 +22,12 @@ class ExampleSpec extends Specification {
     def featureSetOverride(feature: com.gu.featureswitching.FeatureSwitch,overridden: Boolean): Unit = { Unit }
   }
 
-  trait alwaysEnabled extends TestFeature {
-    override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(true) }
+  trait enabledFeature extends TestFeature {
+    override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Some(true) }
+  }
+
+  trait unavailableFeature extends TestFeature {
+    override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { None }
   }
 
   trait simpleFeatures extends TestFeature {
@@ -37,27 +41,41 @@ class ExampleSpec extends Specification {
     override val features = List()
   }
 
+  class TestFeatures extends TestFeature with simpleFeatures 
   class TestEmptyFeatures extends TestFeature with emptyFeatures
-  class TestSimpleFeatures extends TestFeature with simpleFeatures 
-  class TestSimpleEnabledFeatures extends TestFeature with simpleFeatures with alwaysEnabled
+  class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
+  class TestUnavailableFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
   "FeaturesApi featureEnabledByKey" should {
     "return the enabled state of a feature" in {
-      running(FakeApplication()) {
-        val subject =  new TestSimpleEnabledFeatures
-        val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
-        val bodyJson: JsValue = contentAsJson(result)
-        val expectedJson: JsValue = Json.parse("true")
 
-        bodyJson must be equalTo expectedJson
+      "when feature unavailable returns 404" >> {
+        running(FakeApplication()) {
+          val subject =  new TestUnavailableFeatures 
+          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+
+          status(result) must be equalTo 404 
+        }
       }
+
+      "when feature enabled returns value" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEnabledFeatures
+          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+          val bodyJson: JsValue = contentAsJson(result)
+          val expectedJson: JsValue = Json.parse("true")
+
+          bodyJson must be equalTo expectedJson
+        }
+      }
+
     }
   }
 
   "FeaturesApi featureByKey" should {
     "return a feature" in {
       running(FakeApplication()) {
-        val subject =  new TestSimpleFeatures
+        val subject =  new TestFeatures
         val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
         val expectedJson: JsValue = Json.parse("""{"key":"featureOn","title":"Feature On","default":true}""")
@@ -70,7 +88,7 @@ class ExampleSpec extends Specification {
   "FeaturesApi featureList" should {
     "return a list of features" in {
       running(FakeApplication()) {
-        val subject = new TestSimpleFeatures
+        val subject = new TestFeatures
         val result: Future[Result] = subject.featureList().apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
         val expectedJson: JsValue = Json.parse("""[{"key":"featureOn","title":"Feature On","default":true},{"key":"featureOff","title":"Feature Off","default":false}]""")

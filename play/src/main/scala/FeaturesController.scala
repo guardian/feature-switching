@@ -27,7 +27,9 @@ trait FeaturesApi extends Controller with FeatureSwitching{
   def featureEnabledByKey(key: String) = Action {
     implicit val featuresSerializer = Json.writes[FeatureSwitch] 
 
-    getFeature(key).fold(NotFound("invalid-feature"))(f => Ok(Json.toJson(featureIsEnabled(f)))) 
+    getFeature(key).fold(NotFound("invalid-feature"))(f => {
+      featureIsEnabled(f).fold(NotFound("unavailable-feature"))(e => Ok(Json.toJson(e)))
+    }) 
   }
 
 }
