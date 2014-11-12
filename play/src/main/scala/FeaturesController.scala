@@ -8,7 +8,7 @@ trait FeaturesApi extends Controller with FeatureSwitching{
   val features: List[FeatureSwitch]
   implicit val featuresSerializer = Json.writes[FeatureSwitch] 
 
-  def healthCheck = Action {
+  def healthCheck = Action { 
     Ok("ok")
   }
 
@@ -32,4 +32,7 @@ trait FeaturesApi extends Controller with FeatureSwitching{
     }) 
   }
 
+  def featureOverridenByKey(key: String) = Action {
+    Ok("ok")
+  }
 }
