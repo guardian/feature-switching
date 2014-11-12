@@ -11,12 +11,26 @@ import com.gu.featureswitching.FeatureSwitch
 import com.gu.featureswitching.play._
 
 class ExampleSpec extends Specification {
-  val emptyFeatures = new FeaturesApi {
-    val features = List()
+  class TestFeature extends FeaturesApi {
+    val features: List[FeatureSwitch] = List()
+
+    // Members declared in com.gu.featureswitching.FeatureSwitchingEnablingStrategy
+    def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(false) }
+    def featureResetEnabled(feature: com.gu.featureswitching.FeatureSwitch): Unit = { Unit }
+    def featureSetEnabled(feature: com.gu.featureswitching.FeatureSwitch,enabled: Boolean): Unit = { Unit }
+
+    // Members declared in com.gu.featureswitching.FeatureSwitchingOverrideStrategy
+    def featureIsOverridden(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(false) }
+    def featureResetOverride(feature: com.gu.featureswitching.FeatureSwitch): Unit = { Unit }
+    def featureSetOverride(feature: com.gu.featureswitching.FeatureSwitch,overridden: Boolean): Unit = { Unit }
   }
 
-  val fakeFeatures = new FeaturesApi {
-    val features = List(
+  val emptyFeatures = new TestFeature {
+    override val features = List()
+  }
+
+  val fakeFeatures = new TestFeature {
+    override val features = List(
       FeatureSwitch("featureOn", "Feature On", true),
       FeatureSwitch("featureOff", "Feature Off", false)
     )
@@ -25,11 +39,9 @@ class ExampleSpec extends Specification {
   "FeaturesApi featureByKey" should {
     "return a feature" in {
       running(FakeApplication()) {
-        val result: Future[Result] = fakeFeatures.featureByKey('featureOn').apply(FakeRequest())
+        val result: Future[Result] = fakeFeatures.featureByKey("featureOn").apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
-        val expectedJson: JsValue = Json.parse("""[{"foo":"bar"}]""")
-
-println(bodyJson)
+        val expectedJson: JsValue = Json.parse("""{"key":"featureOn","title":"Feature On","default":true}""")
 
         bodyJson must be equalTo expectedJson
       }

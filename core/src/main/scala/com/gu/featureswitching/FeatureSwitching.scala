@@ -5,8 +5,8 @@ case class FeatureSwitch(key: String, title: String, default: Boolean)
 trait FeatureSwitching extends FeatureSwitchingEnablingStrategy with FeatureSwitchingOverrideStrategy {
   val features: List[FeatureSwitch]
 
-  def getFeatureFromKeyParam(featureKey: String, callback: () => Unit) = {
-    features.find(_.key == featureKey) getOrElse callback() 
+  def getFeature(featureKey: String): Option[FeatureSwitch]  = {
+    features.find(_.key == featureKey)
   }
 
   def featureIsActive(feature: FeatureSwitch): Boolean = {
