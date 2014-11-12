@@ -1,12 +1,9 @@
 import org.specs2.mutable._
-
 import scala.concurrent.Future
-
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
-
 import com.gu.featureswitching.FeatureSwitch
 import com.gu.featureswitching.play._
 
@@ -25,21 +22,43 @@ class ExampleSpec extends Specification {
     def featureSetOverride(feature: com.gu.featureswitching.FeatureSwitch,overridden: Boolean): Unit = { Unit }
   }
 
-  val emptyFeatures = new TestFeature {
-    override val features = List()
+  trait alwaysEnabled extends TestFeature {
+    override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(true) }
   }
 
-  val fakeFeatures = new TestFeature {
+  trait simpleFeatures extends TestFeature {
     override val features = List(
       FeatureSwitch("featureOn", "Feature On", true),
       FeatureSwitch("featureOff", "Feature Off", false)
     )
   }
 
+  trait emptyFeatures extends TestFeature {
+    override val features = List()
+  }
+
+  class TestEmptyFeatures extends TestFeature with emptyFeatures
+  class TestSimpleFeatures extends TestFeature with simpleFeatures 
+  class TestSimpleEnabledFeatures extends TestFeature with simpleFeatures with alwaysEnabled
+
+  "FeaturesApi featureEnabledByKey" should {
+    "return the enabled state of a feature" in {
+      running(FakeApplication()) {
+        val subject =  new TestSimpleEnabledFeatures
+        val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+        val bodyJson: JsValue = contentAsJson(result)
+        val expectedJson: JsValue = Json.parse("true")
+
+        bodyJson must be equalTo expectedJson
+      }
+    }
+  }
+
   "FeaturesApi featureByKey" should {
     "return a feature" in {
       running(FakeApplication()) {
-        val result: Future[Result] = fakeFeatures.featureByKey("featureOn").apply(FakeRequest())
+        val subject =  new TestSimpleFeatures
+        val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
         val expectedJson: JsValue = Json.parse("""{"key":"featureOn","title":"Feature On","default":true}""")
 
@@ -51,7 +70,8 @@ class ExampleSpec extends Specification {
   "FeaturesApi featureList" should {
     "return a list of features" in {
       running(FakeApplication()) {
-        val result: Future[Result] = fakeFeatures.featureList().apply(FakeRequest())
+        val subject = new TestSimpleFeatures
+        val result: Future[Result] = subject.featureList().apply(FakeRequest())
         val bodyJson: JsValue = contentAsJson(result)
         val expectedJson: JsValue = Json.parse("""[{"key":"featureOn","title":"Feature On","default":true},{"key":"featureOff","title":"Feature Off","default":false}]""")
 
@@ -63,7 +83,8 @@ class ExampleSpec extends Specification {
   "FeaturesApi healthCheck" should {
     "respond 'ok'" in {
       running(FakeApplication()) {
-        val result: Future[Result] = emptyFeatures.healthCheck().apply(FakeRequest())
+        val subject = new TestEmptyFeatures
+        val result: Future[Result] = subject.healthCheck().apply(FakeRequest())
         val bodyText: String = contentAsString(result)
 
         bodyText must be equalTo "ok"

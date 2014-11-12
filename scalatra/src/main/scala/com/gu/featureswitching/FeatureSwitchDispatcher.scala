@@ -70,7 +70,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   get("/switches/:key/enabled") {
     val feature = getFeatureOr404
 
-    featureIsEnabled() getOrElse halt(404, errorFeatureNotSet)
+    featureIsEnabled(feature) getOrElse halt(404, errorFeatureNotSet)
   }
 
   put("/switches/:key/enabled") {
