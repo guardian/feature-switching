@@ -151,6 +151,7 @@ class ExampleSpec extends Specification {
         val result: Future[Result] = subject.healthCheck().apply(FakeRequest())
         val bodyText: String = contentAsString(result)
 
+        status(result) must be equalTo 200
         bodyText must be equalTo "ok"
       }
     }
