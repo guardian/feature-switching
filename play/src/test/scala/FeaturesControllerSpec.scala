@@ -47,9 +47,8 @@ class ExampleSpec extends Specification {
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
   "FeaturesApi featureEnabledByKey" should {
-    "return the enabled state of a feature" in {
-
-      "when feature unavailable returns 404" >> {
+    "when feature unavailable" >> {
+      "return 404, with body 'invalid-feature'" >> {
         running(FakeApplication()) {
           val subject =  new TestEmptyFeatures 
           val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
@@ -58,8 +57,9 @@ class ExampleSpec extends Specification {
           status(result) must be equalTo 404 
         }
       }
-
-      "when feature unset returns 404" >> {
+    }
+    "when feature unset" >> {
+      "return 404, with body 'unset-feature'" >> {
         running(FakeApplication()) {
           val subject =  new TestUnsetFeatures 
           val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
@@ -68,8 +68,9 @@ class ExampleSpec extends Specification {
           status(result) must be equalTo 404 
         }
       }
-
-      "when feature enabled returns value" >> {
+    }
+    "when feature available" >> {
+      "return 200, with json value" >> {
         running(FakeApplication()) {
           val subject =  new TestEnabledFeatures
           val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
@@ -77,6 +78,7 @@ class ExampleSpec extends Specification {
           val expectedJson: JsValue = Json.parse("true")
 
           bodyJson must be equalTo expectedJson
+          status(result) must be equalTo 200 
         }
       }
 
@@ -84,14 +86,29 @@ class ExampleSpec extends Specification {
   }
 
   "FeaturesApi featureByKey" should {
-    "return a feature" in {
-      running(FakeApplication()) {
-        val subject =  new TestFeatures
-        val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
-        val bodyJson: JsValue = contentAsJson(result)
-        val expectedJson: JsValue = Json.parse("""{"key":"featureOn","title":"Feature On","default":true}""")
+    "when feature available" >> {
+      "return 200, with json value" >> {
+        running(FakeApplication()) {
+          val subject =  new TestFeatures
+          val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
+          val bodyJson: JsValue = contentAsJson(result)
+          val expectedJson: JsValue = Json.parse("""{"key":"featureOn","title":"Feature On","default":true}""")
 
-        bodyJson must be equalTo expectedJson
+          bodyJson must be equalTo expectedJson
+          status(result) must be equalTo 200 
+        }
+      }
+    }
+
+    "when feature unavailable" >> {
+      "return 404, with body 'invalid-feature'" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEmptyFeatures
+          val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
+
+          contentAsString(result) must be equalTo "invalid-feature"
+          status(result) must be equalTo 404 
+        }
       }
     }
   }
