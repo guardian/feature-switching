@@ -54,6 +54,7 @@ class ExampleSpec extends Specification {
           val subject =  new TestUnavailableFeatures 
           val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
 
+          contentAsString(result) must be equalTo "unset-feature"
           status(result) must be equalTo 404 
         }
       }

@@ -28,7 +28,7 @@ trait FeaturesApi extends Controller with FeatureSwitching{
     implicit val featuresSerializer = Json.writes[FeatureSwitch] 
 
     getFeature(key).fold(NotFound("invalid-feature"))(f => {
-      featureIsEnabled(f).fold(NotFound("unavailable-feature"))(e => Ok(Json.toJson(e)))
+      featureIsEnabled(f).fold(NotFound("unset-feature"))(e => Ok(Json.toJson(e)))
     }) 
   }
 
