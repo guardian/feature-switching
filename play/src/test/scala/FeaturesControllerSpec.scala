@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 import com.gu.featureswitching.FeatureSwitch
 import com.gu.featureswitching.play._
 
-class ExampleSpec extends Specification {
+class FeaturesApiSpec extends Specification {
   class TestFeature extends FeaturesApi {
     val features: List[FeatureSwitch] = List()
 
@@ -46,7 +46,7 @@ class ExampleSpec extends Specification {
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
-  "FeaturesApi featureEnabledByKey" should {
+  "featureEnabledByKey" should {
     "when feature unavailable" >> {
       "return 404, with body 'invalid-feature'" >> {
         running(FakeApplication()) {
@@ -86,7 +86,7 @@ class ExampleSpec extends Specification {
     }
   }
 
-  "FeaturesApi featureByKey" should {
+  "featureByKey" should {
     "when feature available" >> {
       "return 200, with json value" >> {
         running(FakeApplication()) {
@@ -114,7 +114,7 @@ class ExampleSpec extends Specification {
     }
   }
 
-  "FeaturesApi featureList" should {
+  "featureList" should {
     "when feature list not-empty" >> {
       "return 200, with json list of features" in {
         running(FakeApplication()) {
@@ -144,7 +144,7 @@ class ExampleSpec extends Specification {
     }
   }
 
-  "FeaturesApi healthCheck" should {
+  "healthCheck" should {
     "return 200, with body 'ok'" in {
       running(FakeApplication()) {
         val subject = new TestEmptyFeatures
