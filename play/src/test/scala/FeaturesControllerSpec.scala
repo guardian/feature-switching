@@ -58,12 +58,20 @@ class PlayFeaturesApiSpec extends Specification {
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
-  "featureEnabledByKey (GET api/features/switches/:key/enabled)" should {
+  "putFeatureEnabledByKey (PUT api/features/switches/:key/enabled)" should {
+    "when invalid json sent" >> {
+      running(FakeApplication()) {
+        false
+      }
+    }
+  }
+
+  "getFeatureEnabledByKey (GET api/features/switches/:key/enabled)" should {
     "when feature unavailable" >> {
       "return 404, with body 'invalid-feature'" >> {
         running(FakeApplication()) {
           val subject =  new TestEmptyFeatures 
-          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureEnabledByKey("featureOn").apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
               "errorKey":"invalid-feature"
@@ -80,7 +88,7 @@ class PlayFeaturesApiSpec extends Specification {
       "return 404, with body 'unset-feature'" >> {
         running(FakeApplication()) {
           val subject =  new TestUnsetFeatures 
-          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureEnabledByKey("featureOn").apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
               "errorKey":"unset-feature"
@@ -97,7 +105,7 @@ class PlayFeaturesApiSpec extends Specification {
       "return 200, with json value" >> {
         running(FakeApplication()) {
           val subject =  new TestEnabledFeatures
-          val result: Future[Result] = subject.featureEnabledByKey("featureOn").apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureEnabledByKey("featureOn").apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
               "data":true
@@ -111,12 +119,12 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
-  "featureByKey (GET api/features/switches/:key)" should {
+  "getFeatureByKey (GET api/features/switches/:key)" should {
     "when feature available" >> {
       "return 200, with json value" >> {
         running(FakeApplication()) {
           val subject =  new TestFeatures
-          val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureByKey("featureOn").apply(FakeRequest())
 
           contentAsJson(result) must be equalTo getJsonFixture("feature") 
           status(result) must be equalTo 200 
@@ -128,7 +136,7 @@ class PlayFeaturesApiSpec extends Specification {
       "return 404, with body 'invalid-feature'" >> {
         running(FakeApplication()) {
           val subject =  new TestEmptyFeatures
-          val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureByKey("featureOn").apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
               "errorKey":"invalid-feature"
@@ -142,12 +150,12 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
-  "featureList (GET api/features/switches)" should {
+  "getFeatureList (GET api/features/switches)" should {
     "when feature list not-empty" >> {
       "return 200, with json list of features" in {
         running(FakeApplication()) {
           val subject = new TestFeatures
-          val result: Future[Result] = subject.featureList.apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureList.apply(FakeRequest())
           
           status(result) must be equalTo 200
           contentAsJson(result) must be equalTo getJsonFixture("feature_list") 
@@ -159,7 +167,7 @@ class PlayFeaturesApiSpec extends Specification {
       "return 200, with an empty json list" in {
         running(FakeApplication()) {
           val subject = new TestEmptyFeatures
-          val result: Future[Result] = subject.featureList.apply(FakeRequest())
+          val result: Future[Result] = subject.getFeatureList.apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
               "data":[]
@@ -173,11 +181,11 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
-  "rootResponse (GET api/features)" should {
+  "getRootResponse (GET api/features)" should {
     "return 200, with json response" in {
       running(FakeApplication()) {
         val subject = new TestFeatures
-        val result: Future[Result] = subject.rootResponse.apply(FakeRequest())
+        val result: Future[Result] = subject.getRootResponse.apply(FakeRequest())
 
         status(result) must be equalTo 200
         contentAsJson(result) must be equalTo getJsonFixture("root") 
@@ -185,11 +193,11 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
-  "healthCheck" should {
+  "getHealthCheck" should {
     "return 200, with json ok response" in {
       running(FakeApplication()) {
         val subject = new TestEmptyFeatures
-        val result: Future[Result] = subject.healthCheck.apply(FakeRequest())
+        val result: Future[Result] = subject.getHealthCheck.apply(FakeRequest())
         val expectedJson: JsValue = Json.parse("""
           {
             "data": "ok"

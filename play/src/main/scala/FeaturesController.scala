@@ -22,21 +22,21 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   implicit val featureSwitchRootSerializer = Json.writes[FeatureSwitchRoot] 
   implicit val featureSwitchRootResponseSerializer = Json.writes[FeatureSwitchRootResponse] 
 
-  def healthCheck = Action { 
+  def getHealthCheck = Action { 
     Ok(Json.toJson(StringEntity("ok")))
   }
 
-  def rootResponse = Action {
+  def getRootResponse = Action {
     Ok(Json.toJson(FeatureSwitchRootResponse(FeatureSwitchRoot(
       FeatureSwitchIndexResponse(Some(switchesUri), featuresResponses)
     ))))    
   }
 
-  def featureList = Action {
+  def getFeatureList = Action {
     Ok(Json.toJson(FeatureSwitchIndexResponse(None, featuresResponses))) 
   }
 
-  def featureByKey(key: String) = Action {
+  def getFeatureByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
     )(feature => {
@@ -44,7 +44,7 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
     })
   }
 
-  def featureEnabledByKey(key: String) = Action {
+  def getFeatureEnabledByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
     )(feature => {
@@ -54,5 +54,17 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
         Ok(Json.toJson(BooleanEntity(enabled)))
       })
     }) 
+  }
+
+  def putFeatureEnabledByKey(key: String) = Action { request =>
+    val body: AnyContent = request.body
+    val jsonBody: Option[JsValue] = body.asJson
+
+    jsonBody.map { json =>
+      Ok(Json.toJson(BooleanEntity(true)))
+    }.getOrElse {
+      // log "Deserialisation failed (invalid json)"
+      BadRequest(Json.toJson(ErrorEntity("invalid-json")))
+    }
   }
 }
