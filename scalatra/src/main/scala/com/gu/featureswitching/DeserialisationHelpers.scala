@@ -1,6 +1,6 @@
 package com.gu.featureswitching.util
 
-import com.gu.featureswitching.dispatcher.ErrorEntity
+import com.gu.featureswitching.responses.ErrorEntity
 import org.scalatra.ScalatraServlet
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.JsonAST.{JBool, JArray}
