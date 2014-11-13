@@ -39,19 +39,19 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   def featureByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-    )(f => {
-      Ok(Json.toJson(featureResponse(f))) 
+    )(feature => {
+      Ok(Json.toJson(featureResponse(feature))) 
     })
   }
 
   def featureEnabledByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-    )(f => {
-      featureIsEnabled(f).fold(
+    )(feature => {
+      featureIsEnabled(feature).fold(
         NotFound(Json.toJson(ErrorEntity("unset-feature")))
-      )(e => { 
-        Ok(Json.toJson(BooleanEntity(e)))
+      )(enabled => { 
+        Ok(Json.toJson(BooleanEntity(enabled)))
       })
     }) 
   }
