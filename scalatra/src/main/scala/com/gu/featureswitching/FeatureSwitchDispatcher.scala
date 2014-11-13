@@ -58,7 +58,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
 
   // You probably only want to use this for the routes below
   def getFeatureOr404 = {
-    getFeature(params("key")).fold(halt(404, body = errorInvalidFeature))(_)
+    getFeature(params("key")) getOrElse halt(404, body = errorInvalidFeature)
   }
 
   get("/switches/:key") {
