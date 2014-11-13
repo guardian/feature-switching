@@ -2,14 +2,21 @@ package com.gu.featureswitching.play
 
 import play.api.mvc._
 import play.api.libs.json._
-import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching}
+import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching, FeaturesApi}
 
-trait FeaturesApi extends Controller with FeatureSwitching{
+
+trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi {
   val features: List[FeatureSwitch]
   implicit val featuresSerializer = Json.writes[FeatureSwitch] 
 
   def healthCheck = Action { 
-    Ok("ok")
+    implicit val stringEntitySerializer = Json.writes[StringEntity] 
+
+    Ok(
+      Json.toJson(
+        StringEntity("ok")  
+      )
+    )
   }
 
   def featureList = Action {
@@ -19,9 +26,27 @@ trait FeaturesApi extends Controller with FeatureSwitching{
   }
 
   def featureByKey(key: String) = Action {
+    implicit val errorSerializer = Json.writes[ErrorEntity] 
     implicit val featuresSerializer = Json.writes[FeatureSwitch] 
+    implicit val featuresSwitchEntitySerializer = Json.writes[FeatureSwitchEntity] 
+    implicit val featuresSwitchResponseSerializer = Json.writes[FeatureSwitchResponse] 
+    implicit val toggleResponseSerializer = Json.writes[ToggleResponse] 
 
-    getFeature(key).fold(NotFound("invalid-feature"))(f => Ok(Json.toJson(f)))
+    getFeature(key).fold(
+      NotFound(
+        Json.toJson(
+          ErrorEntity(
+            "invalid-feature"
+          )
+        )
+      )
+    )(f => {
+      Ok(
+        Json.toJson(
+          featureResponse(f) 
+        )
+      )
+    })
   }
 
   def featureEnabledByKey(key: String) = Action {

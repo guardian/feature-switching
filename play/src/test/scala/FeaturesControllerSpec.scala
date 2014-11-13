@@ -7,8 +7,8 @@ import play.api.test.Helpers._
 import com.gu.featureswitching.FeatureSwitch
 import com.gu.featureswitching.play._
 
-class FeaturesApiSpec extends Specification {
-  class TestFeature extends FeaturesApi {
+class PlayFeaturesApiSpec extends Specification {
+  class TestFeature extends PlayFeaturesApi {
     val features: List[FeatureSwitch] = List()
 
     // Members declared in com.gu.featureswitching.FeatureSwitchingEnablingStrategy
@@ -20,6 +20,9 @@ class FeaturesApiSpec extends Specification {
     def featureIsOverridden(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(false) }
     def featureResetOverride(feature: com.gu.featureswitching.FeatureSwitch): Unit = { Unit }
     def featureSetOverride(feature: com.gu.featureswitching.FeatureSwitch,overridden: Boolean): Unit = { Unit }
+
+    // Members declared in com.gu.featureswitching.FeaturesApi
+    def baseApiUri:String = "root"
   }
 
   trait enabledFeature extends TestFeature {
@@ -106,8 +109,14 @@ class FeaturesApiSpec extends Specification {
         running(FakeApplication()) {
           val subject =  new TestEmptyFeatures
           val result: Future[Result] = subject.featureByKey("featureOn").apply(FakeRequest())
+          val bodyJson: JsValue = contentAsJson(result)
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-feature"
+            }
+          """)
 
-          contentAsString(result) must be equalTo "invalid-feature"
+          bodyJson must be equalTo expectedJson
           status(result) must be equalTo 404 
         }
       }
@@ -145,14 +154,19 @@ class FeaturesApiSpec extends Specification {
   }
 
   "healthCheck" should {
-    "return 200, with body 'ok'" in {
+    "return 200, with json ok response" in {
       running(FakeApplication()) {
         val subject = new TestEmptyFeatures
         val result: Future[Result] = subject.healthCheck().apply(FakeRequest())
-        val bodyText: String = contentAsString(result)
+        val bodyJson: JsValue = contentAsJson(result)
+        val expectedJson: JsValue = Json.parse("""
+          {
+            "data": "ok"
+          }
+        """)
 
         status(result) must be equalTo 200
-        bodyText must be equalTo "ok"
+        bodyJson must be equalTo expectedJson
       }
     }
   }
