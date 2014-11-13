@@ -1,0 +1,43 @@
+{
+  "data": {
+    "switches": {
+      "uri": "root/switches",
+      "data": [
+        {
+          "uri": "root/switches/featureOn",
+          "data": {
+            "key": "featureOn",
+            "title": "Feature On",
+            "default": true,
+            "active": false,
+            "enabled": {
+              "uri": "root/switches/featureOn/enabled",
+              "data": false
+            },
+            "overridden": {
+              "uri": "root/switches/featureOn/overridden",
+              "data": false
+            }
+          }
+        },
+        {
+          "uri": "root/switches/featureOff",
+          "data": {
+            "key": "featureOff",
+            "title": "Feature Off",
+            "default": false,
+            "active": false,
+            "enabled": {
+              "uri": "root/switches/featureOff/enabled",
+              "data": false
+            },
+            "overridden": {
+              "uri": "root/switches/featureOff/overridden",
+              "data": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}
