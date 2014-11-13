@@ -185,7 +185,6 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
-
   "healthCheck" should {
     "return 200, with json ok response" in {
       running(FakeApplication()) {
