@@ -1,9 +1,11 @@
-package com.gu.featureswitching.responses
+package com.gu.featureswitching.dispatcher
 
 import org.scalatra.ScalatraServlet
+import com.gu.featureswitching.responses._
 import com.gu.featureswitching.util.DeserialisationHelpers
 import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching}
 import net.liftweb.json.DefaultFormats
+
 
 trait FeatureSwitchDispatcher extends ScalatraServlet
     with JsonDispatcher with DeserialisationHelpers with FeatureSwitching {
