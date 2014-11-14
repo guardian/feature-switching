@@ -23,6 +23,16 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   implicit val featureSwitchRootWrite = Json.writes[FeatureSwitchRoot] 
   implicit val featureSwitchRootResponseWrite = Json.writes[FeatureSwitchRootResponse] 
 
+  val invalidFeature = NotFound(Json.toJson(ErrorEntity("invalid-feature")))
+  val unsetFeature   = NotFound(Json.toJson(ErrorEntity("unset-feature")))
+  val invalidData    = BadRequest(Json.toJson(ErrorEntity("invalid-data")))
+  val invalidJson    = BadRequest(Json.toJson(ErrorEntity("invalid-json")))
+
+  def orError[A](feature: Option[A], r: Result): Either[Result, A] = feature match { 
+    case Some(f) => Right(f) 
+    case None => Left(r)
+  }
+
   def getHealthCheck = Action { 
     Ok(Json.toJson(StringEntity("ok")))
   }
@@ -38,53 +48,45 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   }
 
   def getFeatureByKey(key: String) = Action {
-    getFeature(key).fold(
-      NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-    )(feature => {
-      Ok(Json.toJson(featureResponse(feature))) 
-    })
+     (for { 
+      feature <- orError(getFeature(key), invalidFeature).right
+    } yield Ok(Json.toJson(featureResponse(feature)))).merge
+  }
+
+  def getFeatureOverriddenByKey(key: String) = Action {
+    (for { 
+      feature <- orError(getFeature(key), invalidFeature).right
+      enabled <- orError(featureIsOverridden(feature), unsetFeature).right 
+    } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
   }
 
   def getFeatureEnabledByKey(key: String) = Action {
-    getFeature(key).fold(
-      NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-    )(feature => {
-      featureIsEnabled(feature).fold(
-        NotFound(Json.toJson(ErrorEntity("unset-feature")))
-      )(enabled => { 
-        Ok(Json.toJson(BooleanEntity(enabled)))
-      })
-    }) 
+    (for { 
+      feature <- orError(getFeature(key), invalidFeature).right
+      enabled <- orError(featureIsEnabled(feature), unsetFeature).right 
+    } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
   }
 
   def deleteFeatureEnabledByKey(key: String) = Action { request =>
-    getFeature(key).fold(
-      NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-    )(feature => { 
+    (for { 
+      feature <- orError(getFeature(key), invalidFeature).right
+    } yield { 
       featureResetEnabled(feature)
       Ok
-    })
+    }).merge
   }
 
   def putFeatureEnabledByKey(key: String) = Action { request =>
     val body: AnyContent = request.body
     val jsonBody: Option[JsValue] = body.asJson
 
-    jsonBody.map { json =>
-      getFeature(key).fold(
-        NotFound(Json.toJson(ErrorEntity("invalid-feature")))
-      )(feature => {
-        val jsResult = json.validate[BooleanEntity] 
-        jsResult match {
-          case JsSuccess(booleanEntity, path) => {
-            featureSetEnabled(feature, booleanEntity.data)
-            Ok
-          }
-          case JsError(error) => BadRequest(Json.toJson(ErrorEntity("invalid-data")))
-        }  
-      })
-    }.getOrElse {
-      BadRequest(Json.toJson(ErrorEntity("invalid-json")))
-    }
+    (for {
+      json    <- orError(jsonBody, invalidJson).right
+      feature <- orError(getFeature(key), invalidFeature).right 
+      enabled <- orError(json.validate[BooleanEntity].asOpt, invalidData).right
+    } yield {
+      featureSetEnabled(feature, enabled.data)
+      Ok
+    }).merge
   }
 }

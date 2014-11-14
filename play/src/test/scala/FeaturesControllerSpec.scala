@@ -184,6 +184,26 @@ class PlayFeaturesApiSpec extends Specification {
     }
   }
 
+  "getFeatureOverriddenByKey (GET api/features/switches/:key/enabled)" should {
+    "when feature unavailable" >> {
+      "return 404, with body 'invalid-feature'" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEmptyFeatures 
+          val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(FakeRequest())
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-feature"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 404 
+        }
+      }
+    }
+  }
+
+
   "getFeatureEnabledByKey (GET api/features/switches/:key/enabled)" should {
     "when feature unavailable" >> {
       "return 404, with body 'invalid-feature'" >> {
