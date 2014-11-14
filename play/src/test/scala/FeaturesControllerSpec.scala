@@ -5,10 +5,14 @@ import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
 import com.gu.featureswitching.FeatureSwitch
+import com.gu.featureswitching.responses.{ BooleanEntity, StringEntity }
 import com.gu.featureswitching.play._
 import scala.io.Source
 
 class PlayFeaturesApiSpec extends Specification {
+  implicit val booleanEntitySerializer = Json.writes[BooleanEntity]
+  implicit val stringEntitySerializer = Json.writes[StringEntity]
+
   def getJsonFixture(filename: String): JsValue = {
     Json.parse(
       Source.fromInputStream(
@@ -59,9 +63,82 @@ class PlayFeaturesApiSpec extends Specification {
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
   "putFeatureEnabledByKey (PUT api/features/switches/:key/enabled)" should {
+
+    "when feature available" >> {
+      "with invalid request json" >> {
+        "return 400, with json error" >> {
+          running(FakeApplication()) {
+            val subject =  new TestFeatures
+            val result: Future[Result] = subject.putFeatureEnabledByKey("featureOn").apply(
+              FakeRequest("PUT", "root/features/switches/featureOn/enabled").withJsonBody(
+                Json.toJson(StringEntity("foo"))
+              )
+            )
+            val expectedJson: JsValue = Json.parse("""
+              {
+                "errorKey":"invalid-data"
+              }
+            """)
+
+            contentAsJson(result) must be equalTo expectedJson 
+            status(result) must be equalTo 400 
+          }
+        }
+      }
+
+      "with valid request json" >> {
+        "return 200, with no content" >> {
+          running(FakeApplication()) {
+            val subject =  new TestFeatures
+            val result: Future[Result] = subject.putFeatureEnabledByKey("featureOn").apply(
+              FakeRequest("PUT", "root/features/switches/featureOn/enabled").withJsonBody(
+                Json.toJson(BooleanEntity(true))
+              )
+            )
+
+            contentAsString(result) must be equalTo "" 
+            status(result) must be equalTo 200 
+          }
+        }
+      }
+    }
+
+
+    "when feature unavailable" >> {
+      "return 404, with json error" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEmptyFeatures
+          val result: Future[Result] = subject.putFeatureEnabledByKey("featureOn").apply(
+            FakeRequest("PUT", "root/features/switches/featureOn/enabled").withJsonBody(
+              Json.toJson(BooleanEntity(true))
+            )
+          )
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-feature"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 404 
+        }
+      }
+    }
+
     "when invalid json sent" >> {
-      running(FakeApplication()) {
-        false
+      "return 400, with json error" >> {
+        running(FakeApplication()) {
+          val subject =  new TestUnsetFeatures 
+          val result: Future[Result] = subject.putFeatureEnabledByKey("featureOn").apply(FakeRequest())
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-json"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 400 
+        }
       }
     }
   }
