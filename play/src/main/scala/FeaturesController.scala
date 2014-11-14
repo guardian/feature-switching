@@ -9,34 +9,35 @@ import com.gu.featureswitching.{FeatureSwitch, FeatureSwitching, FeaturesApi}
 trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi {
   val features: List[FeatureSwitch]
 
-  implicit val stringEntitySerializer = Json.writes[StringEntity] 
-  implicit val errorSerializer = Json.writes[ErrorEntity] 
-  implicit val booleanEntitySerializer = Json.writes[BooleanEntity]
+  implicit val stringEntityWrite = Json.writes[StringEntity] 
+  implicit val errorWrite = Json.writes[ErrorEntity] 
+  implicit val booleanEntityWrite = Json.writes[BooleanEntity]
+  implicit val booleanEntityRead = Json.reads[BooleanEntity]
 
-  implicit val featuresSerializer = Json.writes[FeatureSwitch] 
-  implicit val toggleResponseSerializer = Json.writes[ToggleResponse] 
-  implicit val featureSwitchEntitySerializer = Json.writes[FeatureSwitchEntity] 
-  implicit val featureSwitchResponseSerializer = Json.writes[FeatureSwitchResponse] 
+  implicit val featuresWrite = Json.writes[FeatureSwitch] 
+  implicit val toggleResponseWrite = Json.writes[ToggleResponse] 
+  implicit val featureSwitchEntityWrite = Json.writes[FeatureSwitchEntity] 
+  implicit val featureSwitchResponseWrite = Json.writes[FeatureSwitchResponse] 
 
-  implicit val featureSwitchIndexResponseSerializer = Json.writes[FeatureSwitchIndexResponse]
-  implicit val featureSwitchRootSerializer = Json.writes[FeatureSwitchRoot] 
-  implicit val featureSwitchRootResponseSerializer = Json.writes[FeatureSwitchRootResponse] 
+  implicit val featureSwitchIndexResponseWrite = Json.writes[FeatureSwitchIndexResponse]
+  implicit val featureSwitchRootWrite = Json.writes[FeatureSwitchRoot] 
+  implicit val featureSwitchRootResponseWrite = Json.writes[FeatureSwitchRootResponse] 
 
-  def healthCheck = Action { 
+  def getHealthCheck = Action { 
     Ok(Json.toJson(StringEntity("ok")))
   }
 
-  def rootResponse = Action {
+  def getRootResponse = Action {
     Ok(Json.toJson(FeatureSwitchRootResponse(FeatureSwitchRoot(
       FeatureSwitchIndexResponse(Some(switchesUri), featuresResponses)
     ))))    
   }
 
-  def featureList = Action {
+  def getFeatureList = Action {
     Ok(Json.toJson(FeatureSwitchIndexResponse(None, featuresResponses))) 
   }
 
-  def featureByKey(key: String) = Action {
+  def getFeatureByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
     )(feature => {
@@ -44,7 +45,7 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
     })
   }
 
-  def featureEnabledByKey(key: String) = Action {
+  def getFeatureEnabledByKey(key: String) = Action {
     getFeature(key).fold(
       NotFound(Json.toJson(ErrorEntity("invalid-feature")))
     )(feature => {
@@ -54,5 +55,36 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
         Ok(Json.toJson(BooleanEntity(enabled)))
       })
     }) 
+  }
+
+  def deleteFeatureEnabledByKey(key: String) = Action { request =>
+    getFeature(key).fold(
+      NotFound(Json.toJson(ErrorEntity("invalid-feature")))
+    )(feature => { 
+      featureResetEnabled(feature)
+      Ok
+    })
+  }
+
+  def putFeatureEnabledByKey(key: String) = Action { request =>
+    val body: AnyContent = request.body
+    val jsonBody: Option[JsValue] = body.asJson
+
+    jsonBody.map { json =>
+      getFeature(key).fold(
+        NotFound(Json.toJson(ErrorEntity("invalid-feature")))
+      )(feature => {
+        val jsResult = json.validate[BooleanEntity] 
+        jsResult match {
+          case JsSuccess(booleanEntity, path) => {
+            featureSetEnabled(feature, booleanEntity.data)
+            Ok
+          }
+          case JsError(error) => BadRequest(Json.toJson(ErrorEntity("invalid-data")))
+        }  
+      })
+    }.getOrElse {
+      BadRequest(Json.toJson(ErrorEntity("invalid-json")))
+    }
   }
 }
