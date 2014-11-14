@@ -29,7 +29,6 @@ class PlayFeaturesApiSpec extends Specification {
     def featureResetOverride(feature: FeatureSwitch): Unit = { Unit }
     def featureSetOverride(feature: FeatureSwitch, overridden: Boolean): Unit = { Unit }
 
-    // Members declared in com.gu.featureswitching.FeaturesApi
     def baseApiUri:String = "root"
   }
 
