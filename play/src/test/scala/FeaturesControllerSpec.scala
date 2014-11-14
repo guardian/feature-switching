@@ -5,6 +5,7 @@ import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
 import com.gu.featureswitching.FeatureSwitch
+import com.gu.featureswitching.InMemoryFeatureSwitchEnablingStrategy
 import com.gu.featureswitching.responses.{ BooleanEntity, StringEntity }
 import com.gu.featureswitching.play._
 import scala.io.Source
@@ -21,18 +22,12 @@ class PlayFeaturesApiSpec extends Specification {
     )
   }
 
-  class TestFeature extends PlayFeaturesApi {
+  class TestFeature extends PlayFeaturesApi with InMemoryFeatureSwitchEnablingStrategy {
     val features: List[FeatureSwitch] = List()
 
-    // Members declared in com.gu.featureswitching.FeatureSwitchingEnablingStrategy
-    def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(false) }
-    def featureResetEnabled(feature: com.gu.featureswitching.FeatureSwitch): Unit = { Unit }
-    def featureSetEnabled(feature: com.gu.featureswitching.FeatureSwitch,enabled: Boolean): Unit = { Unit }
-
-    // Members declared in com.gu.featureswitching.FeatureSwitchingOverrideStrategy
-    def featureIsOverridden(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Option(false) }
-    def featureResetOverride(feature: com.gu.featureswitching.FeatureSwitch): Unit = { Unit }
-    def featureSetOverride(feature: com.gu.featureswitching.FeatureSwitch,overridden: Boolean): Unit = { Unit }
+    def featureIsOverridden(feature: FeatureSwitch): Option[Boolean] = { Option(false) }
+    def featureResetOverride(feature: FeatureSwitch): Unit = { Unit }
+    def featureSetOverride(feature: FeatureSwitch, overridden: Boolean): Unit = { Unit }
 
     // Members declared in com.gu.featureswitching.FeaturesApi
     def baseApiUri:String = "root"
@@ -62,8 +57,51 @@ class PlayFeaturesApiSpec extends Specification {
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
-  "putFeatureEnabledByKey (PUT api/features/switches/:key/enabled)" should {
+  "deleteFeatureEnabledByKey (DELETE api/features/switches/:key/enabled)" should {
 
+    "when feature unavailable" >> {
+      "return 404, with json error" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEmptyFeatures
+          val result: Future[Result] = subject.deleteFeatureEnabledByKey("featureOn").apply(
+            FakeRequest()
+          )
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-feature"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 404 
+        }
+      }
+    }
+
+
+    "when feature available" >> {
+      "return 200, with json error" >> {
+        running(FakeApplication()) {
+          val subject =  new TestFeatures
+          subject.getFeature("featureOn").fold()( feature => {
+            subject.featureSetEnabled(feature, true)
+          })
+
+          val result: Future[Result] = subject.deleteFeatureEnabledByKey("featureOn").apply(
+            FakeRequest()
+          )
+
+          subject.getFeature("featureOn").fold()( feature => {
+            subject.featureIsEnabled(feature) must be equalTo None 
+          })
+ 
+          status(result) must be equalTo 200 
+        }
+      }
+    }
+  }
+
+  "putFeatureEnabledByKey (PUT api/features/switches/:key/enabled)" should {
     "when feature available" >> {
       "with invalid request json" >> {
         "return 400, with json error" >> {
@@ -95,7 +133,11 @@ class PlayFeaturesApiSpec extends Specification {
                 Json.toJson(BooleanEntity(true))
               )
             )
-
+            
+            subject.getFeature("featureOn").fold()( feature => {
+              subject.featureIsEnabled(feature) must be equalTo Some(true)
+            })
+              
             contentAsString(result) must be equalTo "" 
             status(result) must be equalTo 200 
           }

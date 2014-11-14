@@ -57,6 +57,15 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
     }) 
   }
 
+  def deleteFeatureEnabledByKey(key: String) = Action { request =>
+    getFeature(key).fold(
+      NotFound(Json.toJson(ErrorEntity("invalid-feature")))
+    )(feature => { 
+      featureResetEnabled(feature)
+      Ok
+    })
+  }
+
   def putFeatureEnabledByKey(key: String) = Action { request =>
     val body: AnyContent = request.body
     val jsonBody: Option[JsValue] = body.asJson
