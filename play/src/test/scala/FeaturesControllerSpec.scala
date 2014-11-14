@@ -25,7 +25,7 @@ class PlayFeaturesApiSpec extends Specification {
   class TestFeature extends PlayFeaturesApi with InMemoryFeatureSwitchEnablingStrategy {
     val features: List[FeatureSwitch] = List()
 
-    def featureIsOverridden(feature: FeatureSwitch): Option[Boolean] = { Option(false) }
+    def featureIsOverridden(feature: FeatureSwitch): Option[Boolean] = { None }
     def featureResetOverride(feature: FeatureSwitch): Unit = { Unit }
     def featureSetOverride(feature: FeatureSwitch, overridden: Boolean): Unit = { Unit }
 
@@ -56,6 +56,62 @@ class PlayFeaturesApiSpec extends Specification {
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
+  "getFeatureOverriddenByKey (GET api/features/switches/:key/overridden)" should {
+
+    "when feature unavailable" >> {
+      "return 404, with json error" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEmptyFeatures
+          val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(
+            FakeRequest()
+          )
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"invalid-feature"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 404 
+        }
+      }
+    }
+
+    "when feature unset" >> {
+      "return 404, with body 'unset-feature'" >> {
+        running(FakeApplication()) {
+          val subject =  new TestUnsetFeatures 
+          val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(FakeRequest())
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "errorKey":"unset-feature"
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 404 
+        }
+      }
+    }
+
+    "when feature available" >> {
+      "return 200, with json value" >> {
+        running(FakeApplication()) {
+          val subject =  new TestEnabledFeatures
+          val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(FakeRequest())
+          val expectedJson: JsValue = Json.parse("""
+            {
+              "data":true
+            }
+          """)
+
+          contentAsJson(result) must be equalTo expectedJson 
+          status(result) must be equalTo 200 
+        }
+      }
+    }
+  }
+
   "deleteFeatureEnabledByKey (DELETE api/features/switches/:key/enabled)" should {
 
     "when feature unavailable" >> {
@@ -77,9 +133,8 @@ class PlayFeaturesApiSpec extends Specification {
       }
     }
 
-
     "when feature available" >> {
-      "return 200, with json error" >> {
+      "return 200, with json object" >> {
         running(FakeApplication()) {
           val subject =  new TestFeatures
           subject.getFeature("featureOn").fold()( feature => {
@@ -127,13 +182,13 @@ class PlayFeaturesApiSpec extends Specification {
         "return 200, with no content" >> {
           running(FakeApplication()) {
             val subject =  new TestFeatures
-            val result: Future[Result] = subject.putFeatureEnabledByKey("featureOn").apply(
+            val result: Future[Result] = subject.putFeatureEnabledByKey("featureOff").apply(
               FakeRequest("PUT", "root/features/switches/featureOn/enabled").withJsonBody(
                 Json.toJson(BooleanEntity(true))
               )
             )
             
-            subject.getFeature("featureOn").fold()( feature => {
+            subject.getFeature("featureOff").fold()( feature => {
               subject.featureIsEnabled(feature) must be equalTo Some(true)
             })
               
@@ -183,26 +238,6 @@ class PlayFeaturesApiSpec extends Specification {
       }
     }
   }
-
-  "getFeatureOverriddenByKey (GET api/features/switches/:key/enabled)" should {
-    "when feature unavailable" >> {
-      "return 404, with body 'invalid-feature'" >> {
-        running(FakeApplication()) {
-          val subject =  new TestEmptyFeatures 
-          val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(FakeRequest())
-          val expectedJson: JsValue = Json.parse("""
-            {
-              "errorKey":"invalid-feature"
-            }
-          """)
-
-          contentAsJson(result) must be equalTo expectedJson 
-          status(result) must be equalTo 404 
-        }
-      }
-    }
-  }
-
 
   "getFeatureEnabledByKey (GET api/features/switches/:key/enabled)" should {
     "when feature unavailable" >> {

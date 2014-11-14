@@ -9,13 +9,12 @@
             "key": "featureOn",
             "title": "Feature On",
             "default": true,
-            "active": false,
+            "active": true,
             "enabled": {
               "uri": "root/switches/featureOn/enabled"
             },
             "overridden": {
-              "uri": "root/switches/featureOn/overridden",
-              "data": false
+              "uri": "root/switches/featureOn/overridden"
             }
           }
         },
@@ -30,8 +29,7 @@
               "uri": "root/switches/featureOff/enabled"
             },
             "overridden": {
-              "uri": "root/switches/featureOff/overridden",
-              "data": false
+              "uri": "root/switches/featureOff/overridden"
             }
           }
         }
