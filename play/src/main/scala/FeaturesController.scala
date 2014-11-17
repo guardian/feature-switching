@@ -49,27 +49,27 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
 
   def getFeatureByKey(key: String) = Action {
      (for { 
-      feature <- orError(getFeature(key), invalidFeature).right
+      feature <- getFeature(key).toRight(invalidFeature).right
     } yield Ok(Json.toJson(featureResponse(feature)))).merge
   }
 
   def getFeatureOverriddenByKey(key: String) = Action {
     (for { 
-      feature <- orError(getFeature(key), invalidFeature).right
-      enabled <- orError(featureIsOverridden(feature), unsetFeature).right 
+      feature <- getFeature(key).toRight(invalidFeature).right
+      enabled <- featureIsOverridden(feature).toRight(unsetFeature).right
     } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
   }
 
   def getFeatureEnabledByKey(key: String) = Action {
     (for { 
-      feature <- orError(getFeature(key), invalidFeature).right
-      enabled <- orError(featureIsEnabled(feature), unsetFeature).right 
+      feature <- getFeature(key).toRight(invalidFeature).right
+      enabled <- featureIsEnabled(feature).toRight(unsetFeature).right
     } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
   }
 
   def deleteFeatureEnabledByKey(key: String) = Action { request =>
     (for { 
-      feature <- orError(getFeature(key), invalidFeature).right
+      feature <- getFeature(key).toRight(invalidFeature).right
     } yield { 
       featureResetEnabled(feature)
       Ok
@@ -81,9 +81,9 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
     val jsonBody: Option[JsValue] = body.asJson
 
     (for {
-      json    <- orError(jsonBody, invalidJson).right
-      feature <- orError(getFeature(key), invalidFeature).right 
-      enabled <- orError(json.validate[BooleanEntity].asOpt, invalidData).right
+      json    <- jsonBody.toRight(invalidJson).right
+      feature <- getFeature(key).toRight(invalidFeature).right
+      enabled <- json.validate[BooleanEntity].asOpt.toRight(invalidData).right
     } yield {
       featureSetEnabled(feature, enabled.data)
       Ok
