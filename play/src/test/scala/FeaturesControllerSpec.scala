@@ -36,6 +36,10 @@ class PlayFeaturesApiSpec extends Specification {
     override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { Some(true) }
   }
 
+  trait overriddenFeature extends TestFeature {
+    override def featureIsOverridden(feature: FeatureSwitch): Option[Boolean] = { Some(true) }
+  }
+
   trait unavailableFeature extends TestFeature {
     override def featureIsEnabled(feature: com.gu.featureswitching.FeatureSwitch): Option[Boolean] = { None }
   }
@@ -54,6 +58,7 @@ class PlayFeaturesApiSpec extends Specification {
   class TestFeatures extends TestFeature with simpleFeatures 
   class TestEmptyFeatures extends TestFeature with emptyFeatures
   class TestEnabledFeatures extends TestFeature with simpleFeatures with enabledFeature 
+  class TestOverriddenFeatures extends TestFeature with simpleFeatures with overriddenFeature
   class TestUnsetFeatures extends TestFeature with simpleFeatures with unavailableFeature 
 
   "getFeatureOverriddenByKey (GET api/features/switches/:key/overridden)" should {
@@ -97,7 +102,7 @@ class PlayFeaturesApiSpec extends Specification {
     "when feature available" >> {
       "return 200, with json value" >> {
         running(FakeApplication()) {
-          val subject =  new TestEnabledFeatures
+          val subject =  new TestOverriddenFeatures
           val result: Future[Result] = subject.getFeatureOverriddenByKey("featureOn").apply(FakeRequest())
           val expectedJson: JsValue = Json.parse("""
             {
