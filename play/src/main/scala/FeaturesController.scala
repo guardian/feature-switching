@@ -28,11 +28,6 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   val invalidData    = BadRequest(Json.toJson(ErrorEntity("invalid-data")))
   val invalidJson    = BadRequest(Json.toJson(ErrorEntity("invalid-json")))
 
-  def orError[A](feature: Option[A], r: Result): Either[Result, A] = feature match { 
-    case Some(f) => Right(f) 
-    case None => Left(r)
-  }
-
   def getHealthCheck = Action { 
     Ok(Json.toJson(StringEntity("ok")))
   }
