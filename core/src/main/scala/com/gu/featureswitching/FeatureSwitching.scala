@@ -14,7 +14,7 @@ trait FeatureStrategy {
 }
 
 trait FeatureSwitching extends {
-  val strategies: List[FeatureStrategy] = List()
+  val strategies: List[FeatureStrategy]
   val features: List[FeatureSwitch]
 
   def getFeature(featureKey: String): Option[FeatureSwitch]  = {
@@ -27,12 +27,6 @@ trait FeatureSwitching extends {
     strategies.foldLeft(feature.default) { (memo, strategy) =>
       strategy.get(getState, feature) getOrElse memo
     }
-    // featureIsOverridden(feature) orElse featureIsEnabled(feature) getOrElse feature.default
-    // strategies.foldRight(feature.default)((strategy, enabled) => _.getOrElse(_))
-
-    // strategies.map(_.get(getState, feature))
-    //   .filterNot(_.isEmpty)
-    //   .lastOption.getOrElse(feature.default)
   }
 }
 
