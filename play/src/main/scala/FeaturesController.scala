@@ -15,7 +15,6 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   implicit val booleanEntityRead = Json.reads[BooleanEntity]
 
   implicit val featuresWrite = Json.writes[FeatureSwitch] 
-  implicit val toggleResponseWrite = Json.writes[ToggleResponse] 
   implicit val featureSwitchEntityWrite = Json.writes[FeatureSwitchEntity] 
   implicit val featureSwitchResponseWrite = Json.writes[FeatureSwitchResponse] 
 
@@ -48,40 +47,40 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
     } yield Ok(Json.toJson(featureResponse(feature)))).merge
   }
 
-  def getFeatureOverriddenByKey(key: String) = Action {
-    (for { 
-      feature <- getFeature(key).toRight(invalidFeature).right
-      enabled <- featureIsOverridden(feature).toRight(unsetFeature).right
-    } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
-  }
+  // def getFeatureOverriddenByKey(key: String) = Action {
+  //   (for { 
+  //     feature <- getFeature(key).toRight(invalidFeature).right
+  //     enabled <- featureIsOverridden(feature).toRight(unsetFeature).right
+  //   } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
+  // }
 
-  def getFeatureEnabledByKey(key: String) = Action {
-    (for { 
-      feature <- getFeature(key).toRight(invalidFeature).right
-      enabled <- featureIsEnabled(feature).toRight(unsetFeature).right
-    } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
-  }
+  // def getFeatureEnabledByKey(key: String) = Action {
+  //   (for { 
+  //     feature <- getFeature(key).toRight(invalidFeature).right
+  //     enabled <- featureIsEnabled(feature).toRight(unsetFeature).right
+  //   } yield Ok(Json.toJson(BooleanEntity(enabled)))).merge
+  // }
 
-  def deleteFeatureEnabledByKey(key: String) = Action { request =>
-    (for { 
-      feature <- getFeature(key).toRight(invalidFeature).right
-    } yield { 
-      featureResetEnabled(feature)
-      Ok
-    }).merge
-  }
+  // def deleteFeatureEnabledByKey(key: String) = Action { request =>
+  //   (for { 
+  //     feature <- getFeature(key).toRight(invalidFeature).right
+  //   } yield { 
+  //     featureResetEnabled(feature)
+  //     Ok
+  //   }).merge
+  // }
 
-  def putFeatureEnabledByKey(key: String) = Action { request =>
-    val body: AnyContent = request.body
-    val jsonBody: Option[JsValue] = body.asJson
+  // def putFeatureEnabledByKey(key: String) = Action { request =>
+  //   val body: AnyContent = request.body
+  //   val jsonBody: Option[JsValue] = body.asJson
 
-    (for {
-      json    <- jsonBody.toRight(invalidJson).right
-      feature <- getFeature(key).toRight(invalidFeature).right
-      enabled <- json.validate[BooleanEntity].asOpt.toRight(invalidData).right
-    } yield {
-      featureSetEnabled(feature, enabled.data)
-      Ok
-    }).merge
-  }
+  //   (for {
+  //     json    <- jsonBody.toRight(invalidJson).right
+  //     feature <- getFeature(key).toRight(invalidFeature).right
+  //     enabled <- json.validate[BooleanEntity].asOpt.toRight(invalidData).right
+  //   } yield {
+  //     featureSetEnabled(feature, enabled.data)
+  //     Ok
+  //   }).merge
+  // }
 }

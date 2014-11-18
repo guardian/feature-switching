@@ -14,9 +14,7 @@ trait FeaturesApi extends FeatureSwitching {
       key        = feature.key,
       title      = feature.title,
       default    = feature.default,
-      active     = featureIsActive(feature),
-      enabled    = ToggleResponse(switchEnabledUri(feature),    featureIsEnabled(feature)),
-      overridden = ToggleResponse(switchOverriddenUri(feature), featureIsOverridden(feature))
+      active     = featureIsActive(feature)
     )
     FeatureSwitchResponse(Some(switchUri(feature)), entity)
   }

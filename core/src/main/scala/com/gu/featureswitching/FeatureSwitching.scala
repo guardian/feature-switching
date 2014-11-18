@@ -2,15 +2,37 @@ package com.gu.featureswitching
 
 case class FeatureSwitch(key: String, title: String, default: Boolean)
 
-trait FeatureSwitching extends FeatureSwitchingEnablingStrategy with FeatureSwitchingOverrideStrategy {
+case class FeatureState(
+  val features: List[FeatureSwitch]
+)
+
+trait FeatureStrategy {
+  val name: String
+  def get(state: FeatureState, feature: FeatureSwitch): Option[Boolean]
+  def set(state: FeatureState, feature: FeatureSwitch): FeatureState
+  def reset(state: FeatureState, feature: FeatureSwitch): FeatureState
+}
+
+trait FeatureSwitching extends {
+  val strategies: List[FeatureStrategy] = List()
   val features: List[FeatureSwitch]
 
   def getFeature(featureKey: String): Option[FeatureSwitch]  = {
     features.find(_.key == featureKey)
   }
 
+  def getState: FeatureState = FeatureState(features)
+
   def featureIsActive(feature: FeatureSwitch): Boolean = {
-    featureIsOverridden(feature) orElse featureIsEnabled(feature) getOrElse feature.default
+    strategies.foldLeft(feature.default) { (memo, strategy) =>
+      strategy.get(getState, feature) getOrElse memo
+    }
+    // featureIsOverridden(feature) orElse featureIsEnabled(feature) getOrElse feature.default
+    // strategies.foldRight(feature.default)((strategy, enabled) => _.getOrElse(_))
+
+    // strategies.map(_.get(getState, feature))
+    //   .filterNot(_.isEmpty)
+    //   .lastOption.getOrElse(feature.default)
   }
 }
 
