@@ -1,31 +1,31 @@
 package com.gu.featureswitching
 
+case class DefaultFeatureState(features: List[FeatureSwitch]) extends FeatureState
 case class FeatureSwitch(key: String, title: String, default: Boolean)
 
-case class FeatureState(
-  val features: List[FeatureSwitch]
-)
-
-trait FeatureStrategy {
-  val name: String
-  def get(state: FeatureState, feature: FeatureSwitch): Option[Boolean]
-  def set(state: FeatureState, feature: FeatureSwitch): FeatureState
-  def reset(state: FeatureState, feature: FeatureSwitch): FeatureState
-}
-
-trait FeatureSwitching extends {
-  val strategies: List[FeatureStrategy]
+trait FeatureState {
   val features: List[FeatureSwitch]
 
   def getFeature(featureKey: String): Option[FeatureSwitch]  = {
     features.find(_.key == featureKey)
   }
+}
 
-  def getState: FeatureState = FeatureState(features)
+trait FeatureStrategy[StateType] {
+  val name: String
+  def get(state: StateType, feature: FeatureSwitch): Option[Boolean]
+  def set(state: StateType, feature: FeatureSwitch): StateType
+  def reset(state: StateType, feature: FeatureSwitch): StateType
+}
 
-  def featureIsActive(feature: FeatureSwitch): Boolean = {
+trait FeatureSwitching {
+  type StateType
+
+  val strategies: List[FeatureStrategy[StateType]]
+
+  def featureIsActive(feature: FeatureSwitch, state: StateType): Boolean = {
     strategies.foldLeft(feature.default) { (memo, strategy) =>
-      strategy.get(getState, feature) getOrElse memo
+      strategy.get(state, feature) getOrElse memo
     }
   }
 }

@@ -27,6 +27,11 @@ trait PlayFeaturesApi extends Controller with FeatureSwitching with FeaturesApi 
   val invalidData    = BadRequest(Json.toJson(ErrorEntity("invalid-data")))
   val invalidJson    = BadRequest(Json.toJson(ErrorEntity("invalid-json")))
 
+
+  def wrapState(request: Request[AnyContent]): PlayFeatureState = {
+    PlayFeatureState(features, request)
+  }
+
   def getHealthCheck = Action { 
     Ok(Json.toJson(StringEntity("ok")))
   }

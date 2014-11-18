@@ -9,12 +9,12 @@ trait FeaturesApi extends FeatureSwitching {
   def switchEnabledUri(feature: FeatureSwitch) = switchUri(feature) + "/enabled"
   def switchOverriddenUri(feature: FeatureSwitch) = switchUri(feature) + "/overridden"
 
-  def featureResponse(feature: FeatureSwitch): FeatureSwitchResponse = {
+  def featureResponse(feature: FeatureSwitch, state: FeatureState): FeatureSwitchResponse = {
     val entity = FeatureSwitchEntity(
       key        = feature.key,
       title      = feature.title,
       default    = feature.default,
-      active     = featureIsActive(feature)
+      active     = featureIsActive(feature, state)
     )
     FeatureSwitchResponse(Some(switchUri(feature)), entity)
   }

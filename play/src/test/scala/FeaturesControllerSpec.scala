@@ -21,27 +21,29 @@ class PlayFeaturesApiSpec extends Specification {
     )
   }
 
-  object TestFeatureStrategy extends FeatureStrategy {
+  object TestFeatureStrategy extends FeatureStrategy[PlayFeatureState] {
     val name: String = "fake"
-    def get(state: FeatureState, feature: FeatureSwitch): Option[Boolean] = {
+    def get(state: PlayFeatureState, feature: FeatureSwitch): Option[Boolean] = {
       Some(true)
     }
-    def set(state: FeatureState, feature: FeatureSwitch): FeatureState = {
+    def set(state: PlayFeatureState, feature: FeatureSwitch): PlayFeatureState = {
       state
     }
-    def reset(state: FeatureState, feature: FeatureSwitch): FeatureState = {
+    def reset(state: PlayFeatureState, feature: FeatureSwitch): PlayFeatureState = {
       state
     }
   }
 
   class TestFeature extends PlayFeaturesApi { 
+    type StateType = PlayFeatureState
+
     val features: List[FeatureSwitch] = List()
-    val strategies: List[FeatureStrategy] = List()
+    val strategies: List[FeatureStrategy[PlayFeatureState]] = List()
     def baseApiUri:String = "root"
   }
 
   trait enableAllStrategy extends TestFeature {
-    override val strategies: List[FeatureStrategy] = List(TestFeatureStrategy) 
+    override val strategies: List[FeatureStrategy[PlayFeatureState]] = List(TestFeatureStrategy) 
   }
 
   trait simpleFeatures extends TestFeature {
