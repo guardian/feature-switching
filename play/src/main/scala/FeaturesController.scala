@@ -6,29 +6,40 @@ import com.gu.featureswitching.responses._
 import com.gu.featureswitching.{play => _, _}
 
 
+class DefaultPlayHandler(val features: List[FeatureSwitch],
+                         val request: Request[AnyContent])
+    extends PlayFeatureApi with PlayHandler with InMemoryFeatureSwitchEnablingStrategy
+    with PlayCookieOverrideStrategy
+
 trait PlayFeatureApi {
 
   val features: List[FeatureSwitch]
 
-  private class PlayHandler(val features: List[FeatureSwitch],
-                            val request: Request[AnyContent])
-      extends FeatureSwitching with InMemoryFeatureSwitchEnablingStrategy
-      with PlayCookieOverrideStrategy {
-    val inCookies  = request.cookies
-  }
+  def getHandler(req: Request[AnyContent]): PlayHandler =
+    new DefaultPlayHandler(features, req)
 
   def PlayFeatureAction(f: (Request[AnyContent], FeatureSwitching) => Result) =
     Action { request =>
-      val handler = new PlayHandler(features, request)
+      val handler = getHandler(request)
       handler(f(request, handler))
     }
 }
 
-trait PlayCookieOverrideStrategy extends CookieFeatureSwitchingOverrideStrategy {
+trait PlayRequestModifier {
+  def apply(res: Result) = res
+}
+
+trait PlayHandler extends FeatureSwitching with PlayRequestModifier {
+  val features: List[FeatureSwitch]
+  val request: Request[AnyContent]
+  val inCookies  = request.cookies
+}
+
+trait PlayCookieOverrideStrategy extends CookieFeatureSwitchingOverrideStrategy with PlayRequestModifier {
   val inCookies: Cookies
   val outCookies = scala.collection.mutable.ListBuffer[Cookie]()
 
-  def apply(res: Result): Result = res.withCookies(outCookies.toList: _*)
+  override def apply(res: Result): Result = super.apply(res.withCookies(outCookies.toList: _*))
   def getCookie(name: String): Option[String] =
     inCookies.get(name).map(_.name)
   def setCookie(name: String, value: String): Unit =
