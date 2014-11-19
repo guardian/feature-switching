@@ -2,22 +2,25 @@ package com.gu.featureswitching
 
 import com.gu.featureswitching.responses._
 
-trait FeaturesApi extends FeatureSwitching {
+trait FeaturesApi {
   def baseApiUri: String
   def switchesUri = baseApiUri + "/switches"
   def switchUri(feature: FeatureSwitch) = switchesUri + "/" + feature.key
   def switchEnabledUri(feature: FeatureSwitch) = switchUri(feature) + "/enabled"
   def switchOverriddenUri(feature: FeatureSwitch) = switchUri(feature) + "/overridden"
 
-  def featureResponse(feature: FeatureSwitch): FeatureSwitchResponse = {
+  def featureResponse(feature: FeatureSwitch, isActive: Boolean): FeatureSwitchResponse = {
     val entity = FeatureSwitchEntity(
       key        = feature.key,
       title      = feature.title,
       default    = feature.default,
-      active     = featureIsActive(feature)
+      active     = isActive
     )
     FeatureSwitchResponse(Some(switchUri(feature)), entity)
   }
 
-  def featuresResponses: List[FeatureSwitchResponse] = features.map(featureResponse(_))
+  def featuresResponses(featureSwitching: FeatureSwitching): List[FeatureSwitchResponse] =
+    featureSwitching.features.map { (feature) =>
+      featureResponse(feature, featureSwitching.featureIsActive(feature))
+    }
 }

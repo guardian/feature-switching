@@ -4,7 +4,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
-import com.gu.featureswitching.{ FeatureSwitch, FeatureStrategy, InMemoryFeatureSwitchEnablingStrategy, FeatureState }
+import com.gu.featureswitching.{ FeatureSwitch, InMemoryFeatureSwitchEnablingStrategy }
 import com.gu.featureswitching.responses.{ BooleanEntity, StringEntity }
 import com.gu.featureswitching.play._
 import scala.io.Source
@@ -21,27 +21,9 @@ class PlayFeaturesApiSpec extends Specification {
     )
   }
 
-  object TestFeatureStrategy extends FeatureStrategy {
-    val name: String = "fake"
-    def get(state: FeatureState, feature: FeatureSwitch): Option[Boolean] = {
-      Some(true)
-    }
-    def set(state: FeatureState, feature: FeatureSwitch): FeatureState = {
-      state
-    }
-    def reset(state: FeatureState, feature: FeatureSwitch): FeatureState = {
-      state
-    }
-  }
-
   class TestFeature extends PlayFeaturesApi { 
     val features: List[FeatureSwitch] = List()
-    val strategies: List[FeatureStrategy] = List()
     def baseApiUri:String = "root"
-  }
-
-  trait enableAllStrategy extends TestFeature {
-    override val strategies: List[FeatureStrategy] = List(TestFeatureStrategy) 
   }
 
   trait simpleFeatures extends TestFeature {
@@ -57,20 +39,8 @@ class PlayFeaturesApiSpec extends Specification {
 
   class TestFeatures extends TestFeature with simpleFeatures 
   class TestEmptyFeatures extends TestFeature with emptyFeatures
-  class TestFeaturesWithEnableAllStrategy extends TestFeature with simpleFeatures with enableAllStrategy 
 
   "getFeatureByKey (GET api/features/switches/:key)" should {
-    "when enable-all strategy" >> {
-      "return 200, with json value with features enabled" >> {
-        running(FakeApplication()) {
-          val subject =  new TestFeaturesWithEnableAllStrategy
-          val result: Future[Result] = subject.getFeatureByKey("featureOff").apply(FakeRequest())
-
-          contentAsJson(result) must be equalTo getJsonFixture("feature_enabled") 
-          status(result) must be equalTo 200 
-        }
-      }
-    }
 
     "when feature available" >> {
       "return 200, with json value" >> {
