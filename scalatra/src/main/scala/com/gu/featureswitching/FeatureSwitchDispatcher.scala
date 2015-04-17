@@ -29,7 +29,7 @@ trait FeatureSwitchDispatcher extends ScalatraServlet
   }
 
   def noContent = {
-    status(201)
+    status_=(201)
   }
 
   def featureResponse(feature: FeatureSwitch): FeatureSwitchResponse = {
