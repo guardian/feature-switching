@@ -1,8 +1,8 @@
 name := "feature-switching-scalatra"
 
 lazy val scalatraDependencies = Seq(
-  "net.liftweb" %% "lift-json" % "2.5",
-  "org.scalatra" %% "scalatra" % "2.0.5"
+  "net.liftweb" %% "lift-json" % "2.6.2",
+  "org.scalatra" %% "scalatra" % "2.3.0"
 )
 
 libraryDependencies ++= Common.dependencies

@@ -4,7 +4,7 @@ version in ThisBuild := "0.13-SNAPSHOT"
 
 organization in ThisBuild := "com.gu"
 
-scalaVersion in ThisBuild := "2.10.0"
+scalaVersion in ThisBuild := "2.11.6"
 
 libraryDependencies ++= Common.dependencies
 
