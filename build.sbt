@@ -7,8 +7,6 @@ sonatypeSettings
 
 name in ThisBuild := "feature-switching"
 
-version in ThisBuild := "1.0-SNAPSHOT"
-
 organization in ThisBuild := "com.gu"
 
 scalaVersion in ThisBuild := "2.11.6"
@@ -42,10 +40,7 @@ ReleaseKeys.releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  ReleaseStep(
-    action = state => Project.extract(state).runTask(PgpKeys.publishSigned, state)._1,
-    enableCrossBuild = true
-  ),
+  ReleaseStep(action = state => Project.extract(state).runTask(PgpKeys.publishSigned, state)._1),
   setNextVersion,
   commitNextVersion,
   ReleaseStep(state => Project.extract(state).runTask(SonatypeKeys.sonatypeReleaseAll, state)._1),
