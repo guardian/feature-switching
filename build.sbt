@@ -1,6 +1,13 @@
+import sbtrelease._
+import ReleaseStateTransformations._
+
+releaseSettings
+
+sonatypeSettings
+
 name in ThisBuild := "feature-switching"
 
-version in ThisBuild := "0.13-SNAPSHOT"
+version in ThisBuild := "1.0-SNAPSHOT"
 
 organization in ThisBuild := "com.gu"
 
@@ -20,12 +27,27 @@ lazy val scalatra = Project("scalatra", file("scalatra"))
 lazy val root = Project("root", file("."))
   .aggregate(core, scalatra)
 
-publishTo <<= (version) { version: String =>
-    val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
-    Some(
-        Resolver.file(
-            "guardian github " + publishType,
-            file(System.getProperty("user.home") + "/guardian.github.com/maven/repo-" + publishType)
-        )
-    )
-}
+scmInfo := Some(ScmInfo(url("https://github.com/guardian/feature-switching"),
+  "scm:git:git@github.com:guardian/feature-switching.git"))
+
+description := "A library for creating and managing feature switches"
+
+licenses := Seq("Apache V2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
+
+ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  ReleaseStep(
+    action = state => Project.extract(state).runTask(PgpKeys.publishSigned, state)._1,
+    enableCrossBuild = true
+  ),
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(state => Project.extract(state).runTask(SonatypeKeys.sonatypeReleaseAll, state)._1),
+  pushChanges
+)
