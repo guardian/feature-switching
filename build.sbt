@@ -1,15 +1,10 @@
-import sbtrelease._
-import ReleaseStateTransformations._
-
-releaseSettings
-
-sonatypeSettings
+import ReleaseTransformations._
 
 name in ThisBuild := "feature-switching"
 
 organization in ThisBuild := "com.gu"
 
-scalaVersion in ThisBuild := "2.11.6"
+scalaVersion in ThisBuild := "2.11.7"
 
 libraryDependencies ++= Common.dependencies
 
@@ -32,7 +27,7 @@ description := "A library for creating and managing feature switches"
 
 licenses := Seq("Apache V2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
-ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
@@ -40,9 +35,9 @@ ReleaseKeys.releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  ReleaseStep(action = state => Project.extract(state).runTask(PgpKeys.publishSigned, state)._1),
+  ReleaseStep(action = Command.process("publishSigned", _)),
   setNextVersion,
   commitNextVersion,
-  ReleaseStep(state => Project.extract(state).runTask(SonatypeKeys.sonatypeReleaseAll, state)._1),
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
   pushChanges
 )
