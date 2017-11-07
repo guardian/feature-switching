@@ -4,7 +4,7 @@ publishArtifact := true
 
 lazy val scalatraDependencies = Seq(
   "net.liftweb" %% "lift-json" % "2.6.2",
-  "org.scalatra" %% "scalatra" % "2.3.0"
+  "org.scalatra" %% "scalatra" % "2.5.1"
 )
 
 libraryDependencies ++= Common.dependencies
