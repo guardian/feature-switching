@@ -1,0 +1,27 @@
+{
+  "data": {
+    "switches": {
+      "uri": "root/switches",
+      "data": [
+        {
+          "uri": "root/switches/featureOn",
+          "data": {
+            "key": "featureOn",
+            "title": "Feature On",
+            "default": true,
+            "active": true
+          }
+        },
+        {
+          "uri": "root/switches/featureOff",
+          "data": {
+            "key": "featureOff",
+            "title": "Feature Off",
+            "default": false,
+            "active": false
+          }
+        }
+      ]
+    }
+  }
+}

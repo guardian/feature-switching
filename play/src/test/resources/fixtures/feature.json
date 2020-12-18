@@ -1,0 +1,9 @@
+{
+    "uri": "root/switches/featureOn",
+    "data": {
+        "key": "featureOn",
+        "title": "Feature On",
+        "default": true,
+        "active": true
+    }
+}
